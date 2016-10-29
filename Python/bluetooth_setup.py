@@ -1,15 +1,35 @@
 import bluetooth
+import time
 
 # The default values are used for TESTING
 def find_device(name = 'Nexus 7', mac = 'D8:50:E6:85:1E:41'):
     device = bluetooth.lookup_name(mac)
-    if name == device:
+    return name == device
+
+def output_status():
+    if find_device:
         print("I found the Android!")
     else:
         print("Where is it?")
 
+###############################################################################
+#                                  PROGRAM                                    #
+###############################################################################
+
 print("searching for specific device...")
-find_device();
+output_status()
+
+counter = 0
+while counter < 10:
+    if find_device():
+        counter += 1
+        print("The device is in range!")
+    else:
+        print("The device can't be detected!")
+
+print("")
+print("The device was found " + str(counter) + " times!")
+
 
 # Program given as example
 """print("performing inquiry...")
