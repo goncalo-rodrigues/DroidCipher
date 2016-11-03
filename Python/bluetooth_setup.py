@@ -2,7 +2,8 @@ import bluetooth
 import time
 
 # The default values are used for TESTING
-def find_device(name = 'Nexus 7', mac = 'D8:50:E6:85:1E:41'):
+#def find_device(name = 'Nexus 7', mac = 'D8:50:E6:85:1E:41'):
+def find_device(name = 'Samsung ATIV S', mac = '08:37:3D:0E:C4:29'):
     device = bluetooth.lookup_name(mac)
     return name == device
 
@@ -15,7 +16,7 @@ def output_status():
 ###############################################################################
 #                                  PROGRAM                                    #
 ###############################################################################
-
+"""
 print("searching for specific device...")
 output_status()
 
@@ -29,10 +30,10 @@ while counter < 10:
 
 print("")
 print("The device was found " + str(counter) + " times!")
-
+"""
 
 # Program given as example
-"""print("performing inquiry...")
+print("performing inquiry...")
 
 nearby_devices = bluetooth.discover_devices(
         duration=4, lookup_names=True, flush_cache=True, lookup_class=False)
@@ -44,5 +45,5 @@ for addr, name in nearby_devices:
         print("  %s - %s" % (addr, name))
     except UnicodeEncodeError:
         print("  %s - %s" % (addr, name.encode('utf-8', 'replace')))
-"""
+
 
