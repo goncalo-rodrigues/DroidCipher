@@ -1,6 +1,7 @@
 from bluetooth import *
 
-server_address = "01:23:45:67:89:AB"
+# The used server address is the one from Nexus 7
+server_address = "D8:50:E6:85:1E:41"
 port = 1
 sock=BluetoothSocket( RFCOMM )
 sock.connect((server_address, port))

@@ -1,5 +1,4 @@
 import bluetooth
-import time
 
 # The default values are used for TESTING
 #def find_device(name = 'Nexus 7', mac = 'D8:50:E6:85:1E:41'):
