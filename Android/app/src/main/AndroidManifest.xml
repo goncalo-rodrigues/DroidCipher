@@ -15,6 +15,8 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <receiver android:name=".BroadcastReceivers.DismissNotificationReceiver" />
+        <receiver android:name=".BroadcastReceivers.AcceptConnectionReceiver" />
     </application>
 
 </manifest>
