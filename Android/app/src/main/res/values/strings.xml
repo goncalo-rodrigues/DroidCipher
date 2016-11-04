@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">DroidCipher</string>
+    <string name="new_connection_long">Incoming connection. Accept it?</string>
+    <string name="new_connection_full">Incoming connection to decipher files. Don\'t accept unless you started this request. Accept it?</string>
+    <string name="new_connection_short">Incoming connection</string>
+    <string name="accept">Accept</string>
+    <string name="close">Close</string>
+    <string name="appImage">App image</string>
 </resources>
