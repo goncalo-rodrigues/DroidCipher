@@ -23,8 +23,8 @@ public_key = RSAkey.publickey()
 
 # Export the public key
 pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
-writefile('protect/public_key.txt', pke)
+writefile('/home/diogo/pyhoncipher/public_key.txt', pke)
 
 # Export the private key
 pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
-writefile('protect/private_key.txt', pke)
+writefile('/home/diogo/pyhoncipher/private_key.txt', pke)
