@@ -14,17 +14,18 @@ def writefile(filename, string):
     fh.write(string)
     fh.close()
 
-random_generator = Random.new().read
-RSAkey = RSA.generate(KEYSIZE,
-                      randfunc=random_generator,
-                      progress_func=None,
-                      e=65537)
-public_key = RSAkey.publickey()
+def cert_get_mock():
+    random_generator = Random.new().read
+    RSAkey = RSA.generate(KEYSIZE,
+                          randfunc=random_generator,
+                          progress_func=None,
+                          e=65537)
+    public_key = RSAkey.publickey()
 
-# Export the public key
-pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
-writefile('/home/diogo/pyhoncipher/public_key.txt', pke)
+    # Export the public key
+    pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
+    writefile('/home/diogo/pyhoncipher/cert/public_key.txt', pke)
 
-# Export the private key
-pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
-writefile('/home/diogo/pyhoncipher/private_key.txt', pke)
+    # Export the private key
+    pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
+    writefile('/home/diogo/pyhoncipher/private_key.txt', pke)

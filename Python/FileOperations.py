@@ -6,21 +6,21 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 
-def encrypt_file(keySize, filename):
+def encrypt_file(keySize, filename, path):
 
-    out_file_name = filename + '.encrypted'
-    out_temporary_name = filename + '.temp'
-    metadata_file_name = filename + '.meta'
-    metadata_temporary_name = filename + '.metatemp'
+    out_file_name = path + filename + '.encrypted'
+    out_temporary_name = path + filename + '.temp'
+    metadata_file_name = path + filename + '.meta'
+    metadata_temporary_name = path + filename + '.metatemp'
 
-    input_file = open(filename, 'rb')
+    input_file = open(path + filename, 'rb')
     output_file = open(out_temporary_name, 'wb')
     metadata_file = open(metadata_temporary_name, 'w')
 
     """saves info to later decipher"""
-    file_size = os.path.getsize(filename)
+    file_size = os.path.getsize(path + filename)
     key = Random.new().read(keySize/8)
-    public_key = RSA.importKey(open('/home/diogo/pyhoncipher/public_key.txt').read(), passphrase='password')
+    public_key = RSA.importKey(open(path +'cert/public_key.txt').read(), passphrase='password')
     asymmetric_cipher = PKCS1_OAEP.new(public_key)
     cipher_key = asymmetric_cipher.encrypt(key)
     iv = Random.new().read(AES.block_size)
@@ -49,11 +49,11 @@ def encrypt_file(keySize, filename):
     os.rename(out_temporary_name,out_file_name)
 
 
-def decrypt_file(filename):
+def decrypt_file(filename, path):
 
-    in_file_name = filename + '.encrypted'
-    out_temporary_name = filename + '.temp'
-    metadata_file_name = filename + '.meta'
+    in_file_name = path + filename + '.encrypted'
+    out_temporary_name = path + filename + '.temp'
+    metadata_file_name = path + filename + '.meta'
 
     input_file = open(in_file_name, 'rb')
     output_file = open(out_temporary_name, 'wb')
@@ -81,11 +81,11 @@ def decrypt_file(filename):
     output_file.close()
     metadata_file.close()
 
-    if os.path.isfile(filename):
-        os.remove(filename)
-    os.rename(out_temporary_name,filename)
+    if os.path.isfile(path + filename):
+        os.remove(path + filename)
+    os.rename(out_temporary_name, path +filename)
 
-
+"""this function is to simulate asking the android"""
 def decrypt_key(encrypted_key):
 
     private_key = RSA.importKey(open('/home/diogo/pyhoncipher/private_key.txt').read(), passphrase='password')

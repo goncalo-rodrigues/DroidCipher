@@ -19,18 +19,21 @@ def write_serial(filename, data):
     cPickle.dump(data, fh, protocol=cPickle.HIGHEST_PROTOCOL)
     fh.close()
 
-PASSPHRASE_PRIVATE = 'password'
-plainfile = 'olaADEUSbomDIAboaNOITE'
 
-RSAkey = readfile('protect/private_key.txt')
-RSAkey = RSA.importKey(RSAkey, passphrase='password')
 
-h = SHA256.new(plainfile)
-signer = PKCS1_v1_5.new(RSAkey)
-signature = signer.sign(h)
+def cert_get_mock():
+    PASSPHRASE_PRIVATE = 'password'
+    plainfile = 'olaADEUSbomDIAboaNOITE'
 
-# Save signature
-write_serial('signature.pkl', signature)
+    RSAkey = readfile('protect/private_key.txt')
+    RSAkey = RSA.importKey(RSAkey, passphrase='password')
 
-# Encrypt file
-write_serial('encryptedfile.pkl', RSAkey.encrypt(plainfile, ''))
+    h = SHA256.new(plainfile)
+    signer = PKCS1_v1_5.new(RSAkey)
+    signature = signer.sign(h)
+
+    # Save signature
+    write_serial('signature.pkl', signature)
+
+    # Encrypt file
+    write_serial('encryptedfile.pkl', RSAkey.encrypt(plainfile, ''))
