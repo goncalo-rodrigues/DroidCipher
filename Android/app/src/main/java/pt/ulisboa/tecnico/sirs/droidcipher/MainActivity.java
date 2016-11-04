@@ -12,8 +12,8 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-//        AcceptThread at = new AcceptThread();
-//        at.run();
+        AcceptThread at = new AcceptThread();
+        at.run();
 
         NotificationsHelper.startNewConnectionNotification(this);
     }

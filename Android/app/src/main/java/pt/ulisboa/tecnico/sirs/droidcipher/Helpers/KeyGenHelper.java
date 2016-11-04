@@ -23,7 +23,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
  */
 
 public class KeyGenHelper {
-    public static final String LOG_TAG = "Helper";
+    public static final String LOG_TAG = KeyGenHelper.class.getSimpleName();
 
     public static PrivateKey getPrivateKey(Context context) {
         try {
@@ -61,6 +61,7 @@ public class KeyGenHelper {
 
     public static void generateNewKeyPair(Context context) {
         try {
+
             KeyPair newPair = KeyPairGenerator.getInstance("RSA").genKeyPair();
             SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
 
@@ -73,6 +74,7 @@ public class KeyGenHelper {
             Log.d(LOG_TAG, "Creating new KeyPair. PublicKey: ..." +
                     publicKeyString.substring(publicKeyString.length() - 5) +
                     "PrivateKey: ..." + privateKeyString.substring(privateKeyString.length() - 5));
+
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
         }
