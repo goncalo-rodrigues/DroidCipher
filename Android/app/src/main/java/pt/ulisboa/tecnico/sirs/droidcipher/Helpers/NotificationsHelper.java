@@ -10,7 +10,7 @@ import android.support.v4.app.NotificationCompat;
 import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.AcceptConnectionReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.DismissNotificationReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
-import pt.ulisboa.tecnico.sirs.droidcipher.MainActivity;
+import pt.ulisboa.tecnico.sirs.droidcipher.NewConnectionActivity;
 import pt.ulisboa.tecnico.sirs.droidcipher.R;
 
 /**
@@ -19,7 +19,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.R;
 
 public class NotificationsHelper {
 
-    private static void  startNewConnectionNotification(Context context){
+    public static void  startNewConnectionNotification(Context context){
         int notificationId = (int) System.currentTimeMillis() % Integer.MAX_VALUE;
 
         String ns = Context.NOTIFICATION_SERVICE;
@@ -27,7 +27,7 @@ public class NotificationsHelper {
                 (NotificationManager) context.getSystemService(ns);
 
         //the intent that is started when the notification is clicked
-        Intent notificationIntent = new Intent(context, MainActivity.class);
+        Intent notificationIntent = new Intent(context, NewConnectionActivity.class);
         PendingIntent pendingNotificationIntent = PendingIntent.getActivity(context, 0,
                 notificationIntent, 0);
 
@@ -47,13 +47,15 @@ public class NotificationsHelper {
 
 
         NotificationCompat.Builder notificationBuilder = new NotificationCompat.Builder(context)
-                .setSmallIcon(R.mipmap.ic_launcher)
+                .setSmallIcon(R.drawable.ic_new_connection)
                 .setContentText(context.getString(R.string.new_connection_long))
                 .setContentTitle(context.getString(R.string.new_connection_short))
                 .setTicker(context.getString(R.string.new_connection_short))
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(context.getString(R.string.new_connection_full)))
+                .setDefaults(Notification.DEFAULT_ALL)
                 .setContentIntent(pendingNotificationIntent)
-                .addAction(R.mipmap.ic_launcher, context.getString(R.string.accept), pendingAcceptIntent)
-                .addAction(R.mipmap.ic_launcher, context.getString(R.string.close), pendingCloseIntent)
+                .addAction(R.drawable.ic_check_black_24dp, context.getString(R.string.accept), pendingAcceptIntent)
+                .addAction(R.drawable.ic_close_black_24dp, context.getString(R.string.close), pendingCloseIntent)
                 .setAutoCancel(true);
 
 
