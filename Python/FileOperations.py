@@ -2,9 +2,11 @@ from Crypto.Cipher import AES
 from Crypto import Random
 import os.path
 import marshal
+from Crypto.Cipher import PKCS1_OAEP
+from Crypto.PublicKey import RSA
 
 
-def encrypt_file(keySize,filename):
+def encrypt_file(keySize, filename):
 
     out_file_name = filename + '.encrypted'
     out_temporary_name = filename + '.temp'
@@ -18,9 +20,11 @@ def encrypt_file(keySize,filename):
     """saves info to later decipher"""
     file_size = os.path.getsize(filename)
     key = Random.new().read(keySize/8)
-    """falta encriptar chave"""
+    public_key = RSA.importKey(open('/home/diogo/pyhoncipher/public_key.txt').read(), passphrase='password')
+    asymmetric_cipher = PKCS1_OAEP.new(public_key)
+    cipher_key = asymmetric_cipher.encrypt(key)
     iv = Random.new().read(AES.block_size)
-    marshal.dump([file_size, key, iv], metadata_file)
+    marshal.dump([file_size, cipher_key, iv], metadata_file)
 
     cipher = AES.new(key, AES.MODE_CBC, iv)
 
@@ -59,7 +63,8 @@ def decrypt_file(filename):
     """saves info to later decipher"""
     file_size = metadata[0]
     """falta desencriptar chave"""
-    key = metadata[1]
+    encrypted_key = metadata[1]
+    key = decrypt_key(encrypted_key)
     iv = metadata[2]
 
     decipher = AES.new(key, AES.MODE_CBC, iv)
@@ -81,6 +86,9 @@ def decrypt_file(filename):
     os.rename(out_temporary_name,filename)
 
 
+def decrypt_key(encrypted_key):
 
-#encrypt_file(256, '/home/diogo/pyhoncipher/tryout')
-decrypt_file('/home/diogo/pyhoncipher/tryout')
+    private_key = RSA.importKey(open('/home/diogo/pyhoncipher/private_key.txt').read(), passphrase='password')
+    cipher = PKCS1_OAEP.new(private_key)
+    decrypted = cipher.decrypt(encrypted_key)
+    return decrypted
