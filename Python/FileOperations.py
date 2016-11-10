@@ -6,6 +6,7 @@ from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 
 
+
 def encrypt_file(keySize, filename, path):
 
     out_file_name = path + filename + '.encrypted'
@@ -49,7 +50,7 @@ def encrypt_file(keySize, filename, path):
     os.rename(out_temporary_name,out_file_name)
 
 
-def decrypt_file(filename, path):
+def decrypt_file(filename, path, socket):
 
     in_file_name = path + filename + '.encrypted'
     out_temporary_name = path + filename + '.temp'
@@ -64,7 +65,7 @@ def decrypt_file(filename, path):
     file_size = metadata[0]
     """falta desencriptar chave"""
     encrypted_key = metadata[1]
-    key = decrypt_key(encrypted_key)
+    key = socket.decrypt_key(encrypted_key)
     iv = metadata[2]
 
     decipher = AES.new(key, AES.MODE_CBC, iv)
@@ -86,9 +87,9 @@ def decrypt_file(filename, path):
     os.rename(out_temporary_name, path +filename)
 
 """this function is to simulate asking the android"""
-def decrypt_key(encrypted_key):
+def decrypt_key(encrypted_key,path):
 
-    private_key = RSA.importKey(open('/home/diogo/pyhoncipher/private_key.txt').read(), passphrase='password')
+    private_key = RSA.importKey(open(path+'private_key.txt').read(), passphrase='password')
     cipher = PKCS1_OAEP.new(private_key)
     decrypted = cipher.decrypt(encrypted_key)
     return decrypted

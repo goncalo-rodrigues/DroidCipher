@@ -1,19 +1,28 @@
 import os.path
 import re
-from Python.FileOperations import decrypt_file
-from Python.FileOperations import encrypt_file
+import base64
+from FileOperations import decrypt_file
+from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
-from subprocess import call
+from mock import mock
+from PIL import Image
+import qrcode
+from Crypto.Cipher import AES
+from Crypto import Random
 
-def make_first_connection():
+program_files_dir ='/home/diogo/pyhoncipher/'
+key_size = 256
+
+def make_first_connection(program_files_dir, keySize):
     print("Making the first connection")
+    program_files_dir = '/home/diogo/pyhoncipher/'
+    integrity_key = Random.new().read(keySize / 8)
+    encoded_key = base64.b64encode(integrity_key)
+    img = qrcode.make(encoded_key)
+    img.show()
+
     """TODO chang this to use smartphone"""
-    cert_get_mock()
-
-
-def trade_communication_key():
-    print("Trading a connection key")
-
+    cert_get_mock(program_files_dir)
 
 def list_files(path, file_list):
     print("Existing Files:")
@@ -25,77 +34,69 @@ def list_files(path, file_list):
 
 
 
+
+
 """========================================"""
 """                THE MAIN                """
 """========================================"""
 
-program_files_dir ='/home/diogo/pyhoncipher/'
+
 print('Using ' + program_files_dir +' as program file')
 
 if os.path.isfile(program_files_dir +'cert/public_key.txt')== False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
-    make_first_connection()
+    make_first_connection(program_files_dir, key_size)
 
-trade_communication_key()
+socket = mock(program_files_dir)#TODO put real socket here
 
 files_list = []
 list_files(program_files_dir, files_list)
 
+img = qrcode.make('tudo o que o nuno quer')
+img.show()
+
+"""============== MAIN LOOP ==============="""
+
 print("Insert Commands, for help insert help:")
 print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
-command = "start"
+command = ["start"]
 while command != "exit":
-    command = raw_input(">>").lower()
-
-    if command == "help":
+    command = raw_input(">>").lower().split()
+    if command[0] == "help":
         print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
 
-    elif (command == "list") | (command =="ls"):
+    elif (command[0] == "list") | (command[0] == "ls"):
         list_files(program_files_dir, files_list)
 
-    elif command == "open":
-        filename = raw_input("Insert the file to open:\n>>")
+    elif command[0] == "open":
+        if len(command) == 1:
+            filename = raw_input("Insert the file to open:\n>>")
+        else:
+            filename = command[1]
         if filename in files_list:
-            decrypt_file(filename, program_files_dir)
+            decrypt_file(filename, program_files_dir, socket)
             timestamp = os.stat(program_files_dir + filename).st_mtime
             os.system('xterm -e "nano ' + program_files_dir + filename + '"')
             timestamp2 = os.stat(program_files_dir + filename).st_mtime
             if timestamp2 != timestamp:
-                encrypt_file(256, filename, program_files_dir)
+                encrypt_file(key_size, filename, program_files_dir)
             os.remove(program_files_dir + filename)
 
-    elif command == "create":
-        filename = raw_input("new file name:\n>>")
+    elif command[0] == "create":
+        if len(command) == 1:
+            filename = raw_input("new file name:\n>>")
+        else:
+            filename = command[1]
         newf = open(program_files_dir + filename, "w")
         newf.close();
-        encrypt_file(256, filename, program_files_dir)
+        encrypt_file(key_size, filename, program_files_dir)
         os.remove(program_files_dir + filename)
         files_list.append(filename)
         print(filename +" created!!")
 
-    elif command != "exit":
+    elif command[0] != "exit":
         print("that command don't exist, enter help")
-
-
-"""
-filename = raw_input("Insert the file to encrypt:\n")
-
- filename = raw_input("Insert the file to encrypt:\n")
-if filename in files_list:
-    encrypt_file(256, filename, program_files_dir)
-    print("file encrypted!!")
-
-    raw_input("Press ENTER to decrypt:\n")
-
-    decrypt_file(filename, program_files_dir)
-    print("file decrypted!!")
-
-else:
-    print("that file dont exist")
-"""
-
-"""use the file tryout"""
 
 
 

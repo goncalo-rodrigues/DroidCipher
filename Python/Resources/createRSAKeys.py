@@ -14,7 +14,7 @@ def writefile(filename, string):
     fh.write(string)
     fh.close()
 
-def cert_get_mock():
+def cert_get_mock(path):
     random_generator = Random.new().read
     RSAkey = RSA.generate(KEYSIZE,
                           randfunc=random_generator,
@@ -24,8 +24,8 @@ def cert_get_mock():
 
     # Export the public key
     pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
-    writefile('/home/diogo/pyhoncipher/cert/public_key.txt', pke)
+    writefile(path+'cert/public_key.txt', pke)
 
     # Export the private key
     pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
-    writefile('/home/diogo/pyhoncipher/private_key.txt', pke)
+    writefile(path+'private_key.txt', pke)
