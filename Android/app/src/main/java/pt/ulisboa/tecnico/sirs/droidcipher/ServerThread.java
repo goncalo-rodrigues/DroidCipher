@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
-import android.bluetooth.*;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothServerSocket;
+import android.bluetooth.BluetoothSocket;
 import android.content.Context;
 import android.util.Log;
 
@@ -9,6 +11,7 @@ import java.io.InputStream;
 import java.util.UUID;
 
 public class ServerThread extends Thread {
+    private final String LOG_TAG = ServerThread.class.getSimpleName();
     private final BluetoothServerSocket mmServerSocket;
     private final Context context;
 
@@ -20,6 +23,10 @@ public class ServerThread extends Thread {
         this.context = context;
 
         BluetoothAdapter device = BluetoothAdapter.getDefaultAdapter();
+
+        if (device == null) {
+            Log.d(LOG_TAG, "No bluetooth adapter found");
+        }
 
         try {
             // MY_UUID is the app's UUID string, also used by the client code

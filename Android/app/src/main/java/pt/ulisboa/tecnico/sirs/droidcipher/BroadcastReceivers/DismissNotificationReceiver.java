@@ -20,5 +20,7 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
         // if you want cancel notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(notificationId);
+
+        // TODO: Cancel connection
     }
 }

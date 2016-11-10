@@ -16,6 +16,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
 /**
@@ -24,6 +26,21 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
 public class KeyGenHelper {
     public static final String LOG_TAG = KeyGenHelper.class.getSimpleName();
+
+
+    public static SecretKeySpec getLastCommunicationKey(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
+        String keyString = prefs.getString(Constants.COMMUNICATION_KEY_PREF, null);
+        byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
+        return new SecretKeySpec(keyBytes, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+    }
+
+    public static void saveCommuncationKey(Context context, byte[] keyBytes) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
+        String keyString = Base64.encodeToString(keyBytes, Base64.DEFAULT);
+        prefs.edit().putString(Constants.COMMUNICATION_KEY_PREF, keyString).commit();
+    }
+
 
     public static PrivateKey getPrivateKey(Context context) {
         try {

@@ -7,6 +7,7 @@ import android.content.Intent;
 import android.util.Log;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
+import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
 
 /**
  * Created by goncalo on 04-11-2016.
@@ -25,6 +26,8 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         /*
         Accept new Connection
          */
+        KeyGenHelper.saveCommuncationKey(context, null);
+        //TODO: Accept new connection
 
     }
 }

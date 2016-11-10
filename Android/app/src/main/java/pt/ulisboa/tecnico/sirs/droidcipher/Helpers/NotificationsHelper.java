@@ -19,8 +19,8 @@ import pt.ulisboa.tecnico.sirs.droidcipher.R;
 
 public class NotificationsHelper {
 
-    public static void  startNewConnectionNotification(Context context){
-        int notificationId = (int) System.currentTimeMillis() % Integer.MAX_VALUE;
+    public static int  startNewConnectionNotification(Context context){
+        int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
 
         String ns = Context.NOTIFICATION_SERVICE;
         NotificationManager notificationManager =
@@ -61,5 +61,6 @@ public class NotificationsHelper {
 
         Notification notification = notificationBuilder.build();
         notificationManager.notify(notificationId, notification);
+        return notificationId;
     }
 }

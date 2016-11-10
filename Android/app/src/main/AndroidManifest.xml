@@ -22,6 +22,8 @@
         <receiver android:name=".BroadcastReceivers.AcceptConnectionReceiver" />
 
         <activity android:name=".NewConnectionActivity"></activity>
+
+        <service android:name=".Services.MainProtocolService" android:exported="false"/>
     </application>
 
 </manifest>
