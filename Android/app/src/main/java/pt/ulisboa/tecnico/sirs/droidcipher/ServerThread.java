@@ -8,7 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.UUID;
 
-public class AcceptThread extends Thread {
+public class ServerThread extends Thread {
     private final BluetoothServerSocket mmServerSocket;
 
     private static final String NAME = "DroidCipher"; //TODO: Use the one from strings.xml
@@ -16,7 +16,7 @@ public class AcceptThread extends Thread {
             UUID.fromString("d1418830-a213-11e6-bdf4-0800200c9a66");
 
 
-    public AcceptThread() {
+    public ServerThread() {
         // Use a temporary object that is later assigned to mmServerSocket,
         // because mmServerSocket is final
         BluetoothServerSocket tmp = null;
