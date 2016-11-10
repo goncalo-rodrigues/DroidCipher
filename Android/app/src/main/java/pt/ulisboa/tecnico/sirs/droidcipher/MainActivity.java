@@ -12,7 +12,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        AcceptThread at = new AcceptThread();
+        ServerThread at = new ServerThread();
         at.run();
 
         NotificationsHelper.startNewConnectionNotification(this);
