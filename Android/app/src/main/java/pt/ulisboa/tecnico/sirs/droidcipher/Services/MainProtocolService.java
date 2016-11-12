@@ -20,6 +20,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.Asserter;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.CipherHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
+import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.NotificationsHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
 import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 
@@ -35,6 +36,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     private byte[] newCommIV = null;
     private PrivateKey privateKey = null;
     private ServerThread serverThread;
+    private boolean accepted = false;
     public MainProtocolService() {
         super();
     }
@@ -54,6 +56,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     public byte[] onNewMessage(String messageType, byte [] message) {
         if (messageType.equals(Constants.MESSAGE_TYPE_NEWCONNECTION)) {
+            accepted = false;
             if (privateKey == null) {
                 privateKey = KeyGenHelper.getPrivateKey(this);
             }
@@ -74,8 +77,23 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             } else {
                 Log.e(LOG_TAG, "Malformed communication key");
             }
-            // TODO: wait for OnAccept() and then return OK
-            return null;
+
+            NotificationsHelper.startNewConnectionNotification(this);
+            synchronized(this) {
+                try {
+                    // Calling wait() will block this thread until another thread
+                    // calls notify() on the object.
+                    this.wait();
+                } catch (InterruptedException e) {
+                    // Happens if someone interrupts your thread.
+                }
+            }
+            if (accepted) {
+                //todo: decide what to respond on accept/reject of comm key
+                return new byte[] {'o', 'k'};
+            } else {
+                return new byte[] {'n', 'o', 'k'};
+            }
         } else if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
 
             // loading to memory
@@ -121,6 +139,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         commIV = newCommIV;
         newCommKey = null;
         newCommIV = null;
+        synchronized(this) {
+            accepted = true;
+            this.notify();
+        }
     }
 
     @Override
@@ -128,5 +150,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         newCommKey = null;
         newCommIV = null;
         Log.d(LOG_TAG, "Connection rejected by user.");
+        synchronized(this) {
+            accepted = false;
+            this.notify();
+        }
     }
 }
