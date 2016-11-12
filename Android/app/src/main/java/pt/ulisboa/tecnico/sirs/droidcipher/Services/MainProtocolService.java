@@ -10,6 +10,7 @@ import android.util.Log;
 
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
+import java.util.Arrays;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -29,6 +30,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 public class MainProtocolService extends Service implements IAcceptConnectionCallback {
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
     private SecretKeySpec commKey = null;
+    private byte[] commIV = null;
     private PrivateKey privateKey = null;
     private boolean accepted = false;
     private ServerThread serverThread;
@@ -63,9 +65,12 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 Log.e(LOG_TAG, "Invalid private key");
             }
 
-            if (Asserter.AssertAESKey(decrypted)) {
-                commKey = new SecretKeySpec(decrypted, Constants.SYMMETRIC_CIPHER_ALGORITHM);
-                KeyGenHelper.saveCommuncationKey(this, decrypted);
+            byte[] decryptedIV = Arrays.copyOfRange(decrypted, 0, 15);
+            byte[] decryptedKey = Arrays.copyOfRange(decrypted, 16, decrypted.length);
+
+            if (Asserter.AssertAESKey(decryptedKey)) {
+                commKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+                KeyGenHelper.saveCommuncationKey(this, decryptedKey, decryptedIV);
             } else {
                 Log.e(LOG_TAG, "Malformed communication key");
             }
@@ -80,8 +85,24 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             if (commKey == null) {
                 commKey = KeyGenHelper.getLastCommunicationKey(this);
             }
+            if (commIV == null) {
+                commIV = KeyGenHelper.getLastCommunicationIV(this);
+            }
+            if (privateKey == null) {
+                privateKey = KeyGenHelper.getPrivateKey(this);
+            }
+            try {
+                byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
+                byte[] fileKey = CipherHelper.RSADecrypt(privateKey, decryptedMessage);
+                byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, fileKey);
 
-            //byte[] decrypted = CipherHelper.AESDecrypt(commKey, )
+                return encryptedFileKey;
+            } catch (InvalidKeyException e) {
+                e.printStackTrace();
+                Log.e(LOG_TAG, "Invalid key!");
+            }
+
+
         }
         return null;
     }

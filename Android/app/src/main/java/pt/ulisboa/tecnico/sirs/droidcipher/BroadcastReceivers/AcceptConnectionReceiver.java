@@ -27,7 +27,7 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         /*
         Accept new Connection
          */
-        KeyGenHelper.saveCommuncationKey(context, null);
+        KeyGenHelper.saveCommuncationKey(context, null, null);
         if (context instanceof IAcceptConnectionCallback) {
             ((IAcceptConnectionCallback) context).OnAcceptConnection();
         }

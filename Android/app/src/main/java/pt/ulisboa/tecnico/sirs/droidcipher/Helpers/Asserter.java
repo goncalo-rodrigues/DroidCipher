@@ -6,7 +6,7 @@ package pt.ulisboa.tecnico.sirs.droidcipher.Helpers;
 
 public class Asserter {
     public static boolean AssertAESKey(byte[] keyToAssert) {
-        //TODO: Asser aes key
+        //TODO: Assert aes key
         return true;
     }
 }
