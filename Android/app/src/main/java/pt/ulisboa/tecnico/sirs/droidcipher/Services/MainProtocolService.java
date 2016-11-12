@@ -31,6 +31,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     private SecretKeySpec commKey = null;
     private PrivateKey privateKey = null;
     private boolean accepted = false;
+    private ServerThread serverThread;
     public MainProtocolService() {
         super();
     }
@@ -43,12 +44,12 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        ServerThread at = new ServerThread(this);
-        at.run();
+        serverThread = new ServerThread(this);
+        serverThread.run();
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public void onNewMessage(String messageType, byte [] message) {
+    public byte[] onNewMessage(String messageType, byte [] message) {
         if (messageType.equals(Constants.MESSAGE_TYPE_NEWCONNECTION)) {
             accepted = false;
             if (privateKey == null) {
@@ -68,19 +69,27 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             } else {
                 Log.e(LOG_TAG, "Malformed communication key");
             }
-            return;
+            // TODO: wait for OnAccept() and then return OK
+            return null;
         } else if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
             if (!accepted) {
                 Log.d(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
-                return;
+                return null;
             }
             // loading to memory
             if (commKey == null) {
                 commKey = KeyGenHelper.getLastCommunicationKey(this);
             }
+
+            //byte[] decrypted = CipherHelper.AESDecrypt(commKey, )
         }
+        return null;
     }
 
+    @Override
+    public void onDestroy() {
+        serverThread.cancel();
+    }
 
     @Override
     public void OnAcceptConnection() {
