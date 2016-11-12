@@ -31,8 +31,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
     private SecretKeySpec commKey = null;
     private byte[] commIV = null;
+    private SecretKeySpec newCommKey = null;
+    private byte[] newCommIV = null;
     private PrivateKey privateKey = null;
-    private boolean accepted = false;
     private ServerThread serverThread;
     public MainProtocolService() {
         super();
@@ -53,7 +54,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     public byte[] onNewMessage(String messageType, byte [] message) {
         if (messageType.equals(Constants.MESSAGE_TYPE_NEWCONNECTION)) {
-            accepted = false;
             if (privateKey == null) {
                 privateKey = KeyGenHelper.getPrivateKey(this);
             }
@@ -69,18 +69,15 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             byte[] decryptedKey = Arrays.copyOfRange(decrypted, 16, decrypted.length);
 
             if (Asserter.AssertAESKey(decryptedKey)) {
-                commKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
-                KeyGenHelper.saveCommuncationKey(this, decryptedKey, decryptedIV);
+                newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+                newCommIV = decryptedIV;
             } else {
                 Log.e(LOG_TAG, "Malformed communication key");
             }
             // TODO: wait for OnAccept() and then return OK
             return null;
         } else if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
-            if (!accepted) {
-                Log.d(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
-                return null;
-            }
+
             // loading to memory
             if (commKey == null) {
                 commKey = KeyGenHelper.getLastCommunicationKey(this);
@@ -90,6 +87,11 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             }
             if (privateKey == null) {
                 privateKey = KeyGenHelper.getPrivateKey(this);
+            }
+            boolean accepted = commKey != null && commIV != null && privateKey != null;
+            if (!accepted) {
+                Log.d(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
+                return null;
             }
             try {
                 byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
@@ -114,12 +116,17 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     @Override
     public void OnAcceptConnection() {
-        accepted = true;
+        KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
+        commKey = newCommKey;
+        commIV = newCommIV;
+        newCommKey = null;
+        newCommIV = null;
     }
 
     @Override
     public void OnRejectConnection() {
-        accepted = false;
+        newCommKey = null;
+        newCommIV = null;
         Log.d(LOG_TAG, "Connection rejected by user.");
     }
 }
