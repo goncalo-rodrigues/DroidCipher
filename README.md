@@ -3,6 +3,7 @@ Encrypt your files when you're away with your smartphone, seamlessly!
 
 ## Python Modules
 * Bluetooth: https://github.com/karulis/pybluez
+* Image shower (needed for the QRCode): http://www.pythonware.com/products/pil/
 
 ## Android Libraries
 * Bluetooth: https://developer.android.com/reference/android/bluetooth/package-summary.html
