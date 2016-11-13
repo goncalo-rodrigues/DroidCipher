@@ -5,25 +5,37 @@ import base64
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
+from bluetooth_rfcomm_client import connect_to_phone_service
+from bluetooth_rfcomm_server import create_pc_service
 from mock import mock
 from PIL import Image
 import qrcode
+from bluetooth import read_local_bdaddr
 from Crypto.Cipher import AES
 from Crypto import Random
+import time
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
+uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
+mac = read_local_bdaddr()[0]
 
-def make_first_connection(program_files_dir, keySize):
+
+def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
-    program_files_dir = os.environ['HOME'] + '/pythoncipher/'
-    integrity_key = Random.new().read(keySize / 8)
+    integrity_key = Random.new().read(key_size / 8)
     encoded_key = base64.b64encode(integrity_key)
-    img = qrcode.make(encoded_key)
+    qrcode_content = mac + "!" + uuid + "!" + encoded_key
+    img = qrcode.make(qrcode_content)
     img.show()
+    #android_info = create_pc_service(uuid)
+
+    # TODO: Check if the public key's integrity is right
+    # TODO: Store Android's mac and uuid
 
     """TODO chang this to use smartphone"""
     cert_get_mock(program_files_dir)
+
 
 def list_files(path, file_list):
     print("Existing Files:")
@@ -46,14 +58,14 @@ program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 if not os.path.exists(program_files_dir):
     os.mkdir(program_files_dir)
 
-print('Using ' + program_files_dir +' as program file')
+print('Using ' + program_files_dir + ' as program file')
 
-if os.path.isfile(program_files_dir +'cert/public_key.txt') == False:
+if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
-socket = mock(program_files_dir)#TODO put real socket here
+socket = mock(program_files_dir)  # TODO put real socket here
 
 files_list = []
 list_files(program_files_dir, files_list)
@@ -98,11 +110,9 @@ while command[0] != "exit":
         encrypt_file(key_size, filename, program_files_dir)
         os.remove(program_files_dir + filename)
         files_list.append(filename)
-        print(filename +" created!!")
+        print(filename + " created!!")
 
     elif command[0] != "exit":
         print("that command doesn't exist, enter help")
 
-
-
-
+socket.close()
