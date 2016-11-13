@@ -17,6 +17,8 @@ import time
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
+
+# TODO: Use a random generator
 uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
 mac = read_local_bdaddr()[0]
 

@@ -26,6 +26,7 @@ def create_pc_service(uuid):
     android_mac = str(client_sock.recv(1024))
 
     client_sock.close()
+    stop_advertising(server_sock)
     server_sock.close()
 
     return (public_key, hash, android_uuid, android_mac)
