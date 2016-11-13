@@ -1,9 +1,7 @@
 import os.path
 import re
-<<<<<<< Updated upstream
+
 import base64
-=======
->>>>>>> Stashed changes
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
@@ -43,11 +41,8 @@ def list_files(path, file_list):
 """                THE MAIN                """
 """========================================"""
 
-<<<<<<< Updated upstream
-
-=======
 program_files_dir ='/home/goncalo/pythoncipher/'
->>>>>>> Stashed changes
+
 print('Using ' + program_files_dir +' as program file')
 
 if os.path.isfile(program_files_dir +'cert/public_key.txt')== False:

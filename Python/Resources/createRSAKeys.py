@@ -24,16 +24,8 @@ def cert_get_mock(path):
 
     # Export the public key
     pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
-<<<<<<< Updated upstream
     writefile(path+'cert/public_key.txt', pke)
 
     # Export the private key
     pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
     writefile(path+'private_key.txt', pke)
-=======
-    writefile('/home/goncalo/pythoncipher/cert/public_key.txt', pke)
-
-    # Export the private key
-    pke = RSAkey.exportKey(format='PEM', passphrase='password', pkcs=1)
-    writefile('/home/goncalo/pyhoncipher/private_key.txt', pke)
->>>>>>> Stashed changes

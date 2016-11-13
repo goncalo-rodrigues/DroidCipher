@@ -88,12 +88,7 @@ def decrypt_file(filename, path, socket):
 
 """this function is to simulate asking the android"""
 def decrypt_key(encrypted_key,path):
-
-<<<<<<< Updated upstream
     private_key = RSA.importKey(open(path+'private_key.txt').read(), passphrase='password')
-=======
-    private_key = RSA.importKey(open('/home/goncalo/pyhoncipher/private_key.txt').read(), passphrase='password')
->>>>>>> Stashed changes
     cipher = PKCS1_OAEP.new(private_key)
     decrypted = cipher.decrypt(encrypted_key)
     return decrypted
