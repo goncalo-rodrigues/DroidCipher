@@ -94,7 +94,7 @@ while command[0] != "exit":
         else:
             filename = command[1]
         newf = open(program_files_dir + filename, "w")
-        newf.close();
+        newf.close()
         encrypt_file(key_size, filename, program_files_dir)
         os.remove(program_files_dir + filename)
         files_list.append(filename)
