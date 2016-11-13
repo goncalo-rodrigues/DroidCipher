@@ -11,12 +11,12 @@ import qrcode
 from Crypto.Cipher import AES
 from Crypto import Random
 
-program_files_dir ='/home/diogo/pyhoncipher/'
+program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
 
 def make_first_connection(program_files_dir, keySize):
     print("Making the first connection")
-    program_files_dir = '/home/diogo/pyhoncipher/'
+    program_files_dir = os.environ['HOME'] + '/pythoncipher/'
     integrity_key = Random.new().read(keySize / 8)
     encoded_key = base64.b64encode(integrity_key)
     img = qrcode.make(encoded_key)
@@ -41,11 +41,14 @@ def list_files(path, file_list):
 """                THE MAIN                """
 """========================================"""
 
-program_files_dir ='/home/goncalo/pythoncipher/'
+program_files_dir = os.environ['HOME'] + '/pythoncipher/'
+
+if not os.path.exists(program_files_dir):
+    os.mkdir(program_files_dir)
 
 print('Using ' + program_files_dir +' as program file')
 
-if os.path.isfile(program_files_dir +'cert/public_key.txt')== False:
+if os.path.isfile(program_files_dir +'cert/public_key.txt') == False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
@@ -55,16 +58,16 @@ socket = mock(program_files_dir)#TODO put real socket here
 files_list = []
 list_files(program_files_dir, files_list)
 
-img = qrcode.make('tudo o que o nuno quer')
-img.show()
 
-"""============== MAIN LOOP ==============="""
+"""========================================"""
+"""               MAIN LOOP                """
+"""========================================"""
 
 print("Insert Commands, for help insert help:")
 print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
 command = ["start"]
-while command != "exit":
-    command = raw_input(">>").lower().split()
+while command[0] != "exit":
+    command = raw_input(">> ").lower().split()
     if command[0] == "help":
         print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
 
@@ -73,7 +76,7 @@ while command != "exit":
 
     elif command[0] == "open":
         if len(command) == 1:
-            filename = raw_input("Insert the file to open:\n>>")
+            filename = raw_input("Insert the file to open:\n>> ")
         else:
             filename = command[1]
         if filename in files_list:
@@ -87,7 +90,7 @@ while command != "exit":
 
     elif command[0] == "create":
         if len(command) == 1:
-            filename = raw_input("new file name:\n>>")
+            filename = raw_input("new file name:\n>> ")
         else:
             filename = command[1]
         newf = open(program_files_dir + filename, "w")
@@ -98,7 +101,7 @@ while command != "exit":
         print(filename +" created!!")
 
     elif command[0] != "exit":
-        print("that command don't exist, enter help")
+        print("that command doesn't exist, enter help")
 
 
 

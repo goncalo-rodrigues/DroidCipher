@@ -38,3 +38,11 @@ build/
 
 #NDK
 obj/
+
+
+################
+#    PYTHON    #
+################
+
+# Compiled files
+*.pyc
