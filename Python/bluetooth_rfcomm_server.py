@@ -21,7 +21,10 @@ client_sock, client_info = server_sock.accept()
 print("Accepted connection from " + str(client_info))
 
 data = client_sock.recv(1024)
-print("received " + str(data))
+print("Received: " + str(data))
+
+# To see if the android device sees the response
+client_sock.send("THIS IS THE RESPONSE OF THE PC!!!")
 
 client_sock.close()
 server_sock.close()

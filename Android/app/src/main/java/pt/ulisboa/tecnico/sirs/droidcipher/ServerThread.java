@@ -8,6 +8,7 @@ import android.util.Log;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.UUID;
 
 public class ServerThread extends Thread {
@@ -31,7 +32,7 @@ public class ServerThread extends Thread {
         try {
             // MY_UUID is the app's UUID string, also used by the client code
             tmp = device.listenUsingRfcommWithServiceRecord(context.getString(R.string.app_name),
-                    UUID.fromString(context.getString(R.string.UUID)));
+                    UUID.fromString(context.getString(R.string.androidUUID)));
         } catch (IOException e) { }
 
         mmServerSocket = tmp;
@@ -52,15 +53,8 @@ public class ServerThread extends Thread {
         while (true) {
             try {
                 int size = mmInStream.read(buffer);
-                String s = "";
+                Log.i("Received message", new String(buffer, 0, size));
 
-                // Converts the received text to a string
-                for(int i = 0; i < size; i++) {
-                    byte[] singleByte = { buffer[i] };
-                    s += new String(singleByte, "UTF-8");
-                }
-
-                Log.i("Received message", s);
             } catch (IOException e) {
                 break;
             }
