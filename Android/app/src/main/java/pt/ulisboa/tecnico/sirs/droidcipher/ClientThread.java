@@ -10,16 +10,15 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
-// Nuno's PC bluetooth MAC address: 48:45:20:C3:19:09
+
 public class ClientThread extends Thread {
     private final BluetoothSocket mmSocket;
     private final Context context;
+    private final int BUFFER_SIZE = 10;
+    private final int NUMBER_TRIES = 5;
 
-    public ClientThread(Context context, String mac) {
+    public ClientThread(Context context, String mac, String pcUuid) {
         this.context = context;
-
-        // Used for testing purposes
-        mac = mac == "" ? "48:45:20:C3:19:09" : mac;
 
         // Use a temporary object that is later assigned to mmSocket,
         // because mmSocket is final
@@ -28,39 +27,62 @@ public class ClientThread extends Thread {
 
         // Get a BluetoothSocket to connect with the given BluetoothDevice
         try {
-            // MY_UUID is the app's UUID string, also used by the server code
-            tmp = device.createRfcommSocketToServiceRecord(UUID.fromString(context.getString(R.string.pcUUID)));
+            tmp = device.createRfcommSocketToServiceRecord(UUID.fromString(pcUuid));
         } catch (IOException e) { }
         mmSocket = tmp;
     }
 
-    public void run() {
-        InputStream in = null;
-        OutputStream out = null;
-
+    public void run(byte[] publicKey, byte[] hash) {
         try {
             // Connect the device through the socket. This will block
             // until it succeeds or throws an exception
             mmSocket.connect();
-            out = mmSocket.getOutputStream();
-            String s = "I am the client!";
-            out.write(s.getBytes(Charset.forName("UTF-8")));
 
-            in = mmSocket.getInputStream();
-            byte[] buffer = new byte[1024];
-            int size = in.read(buffer);
-            Log.i("Received message", new String(buffer, 0, size));
+            int tryNumber = 0;
+            while(tryNumber < NUMBER_TRIES) {
+                sendSmartphoneInfo(publicKey, hash);
+                if(goodResponse())
+                    break;
+                else
+                    tryNumber++;
+            }
+
+            if(tryNumber == NUMBER_TRIES)
+                throw new TooManyTriesException();
 
         } catch (IOException connectException) {
             // Unable to connect; close the socket and get out
             try {
                 mmSocket.close();
             } catch (IOException closeException) { }
-            return;
         }
 
         // Do work to manage the connection (in a separate thread)
         // manageConnectedSocket(mmSocket);
+    }
+
+    private void sendSmartphoneInfo(byte[] publicKey, byte[] hash)throws IOException {
+        OutputStream out = mmSocket.getOutputStream();
+        String macAddress = android.provider.Settings.Secure
+                .getString(context.getContentResolver(), "bluetooth_address");
+
+        out.write(publicKey);
+        out.write(hash);
+        out.write(context.getString(R.string.androidUUID).getBytes("UTF-8"));
+        out.write(macAddress.getBytes("UTF-8"));
+    }
+
+    private boolean goodResponse() throws IOException {
+        InputStream in = mmSocket.getInputStream();
+        byte[] buffer = new byte[BUFFER_SIZE];
+        int size = in.read(buffer);
+
+        if(size > 2) {
+            String message = new String(buffer, 0, size);
+            return message.startsWith("OK");
+        }
+
+        return false;
     }
 
     /** Will cancel an in-progress connection, and close the socket */

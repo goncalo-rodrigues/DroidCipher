@@ -27,6 +27,8 @@ def create_pc_service(uuid):
 
     # TODO: Check the public key's integrity. If there's a problem, it should try again.
 
+    client_sock.send("OK")
+
     client_sock.close()
     stop_advertising(server_sock)
     server_sock.close()
