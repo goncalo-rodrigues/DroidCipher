@@ -17,7 +17,7 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = new Intent(this, MainProtocolService.class);
         startService(intent);
 
-        NotificationsHelper.startNewConnectionNotification(this);
+        //NotificationsHelper.startNewConnectionNotification(this);
     }
 
 

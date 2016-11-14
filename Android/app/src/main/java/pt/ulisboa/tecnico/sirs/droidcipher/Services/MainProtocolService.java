@@ -32,8 +32,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
     private SecretKeySpec commKey = null;
     private byte[] commIV = null;
+
     private SecretKeySpec newCommKey = null;
     private byte[] newCommIV = null;
+
     private PrivateKey privateKey = null;
     private ServerThread serverThread;
     private boolean accepted = false;
@@ -49,8 +51,11 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        serverThread = new ServerThread(this);
-        serverThread.run();
+        if (serverThread == null) {
+            serverThread = new ServerThread(this);
+            serverThread.run();
+        }
+
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -127,6 +132,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         return null;
     }
 
+    public void OnStop() {
+        stopSelf();
+    }
     @Override
     public void onDestroy() {
         serverThread.cancel();

@@ -20,6 +20,11 @@
 
         <receiver android:name=".BroadcastReceivers.DismissNotificationReceiver" />
         <receiver android:name=".BroadcastReceivers.AcceptConnectionReceiver" />
+        <receiver android:name=".BroadcastReceivers.BluetoothBondChangedReceiver">
+            <intent-filter>
+                <action android:name="android.bluetooth.device.action.BOND_STATE_CHANGED"/>
+            </intent-filter>
+        </receiver>
 
         <activity android:name=".NewConnectionActivity"></activity>
 
