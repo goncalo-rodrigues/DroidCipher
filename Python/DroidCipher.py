@@ -4,22 +4,35 @@ import base64
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
+from bluetooth_rfcomm_client import connect_to_phone_service
+from bluetooth_rfcomm_server import create_pc_service
 from mock import mock
 from PIL import Image
 import qrcode
+from bluetooth import read_local_bdaddr
 from Crypto.Cipher import AES
 from Crypto import Random
+import time
 
-program_files_dir ='/home/diogo/pyhoncipher/'
+program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
 
-def make_first_connection(program_files_dir, keySize):
+# TODO: Use a random generator
+uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
+mac = read_local_bdaddr()[0]
+
+
+def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
-    program_files_dir = '/home/diogo/pyhoncipher/'
-    integrity_key = Random.new().read(keySize / 8)
+    integrity_key = Random.new().read(key_size / 8)
     encoded_key = base64.b64encode(integrity_key)
-    img = qrcode.make(encoded_key)
+    qrcode_content = mac + "!" + uuid + "!" + encoded_key
+    img = qrcode.make(qrcode_content)
     img.show()
+    #android_info = create_pc_service(uuid)
+
+    # TODO: Check if the public key's integrity is right
+    # TODO: Store Android's mac and uuid
 
     """TODO chang this to use smartphone"""
     cert_get_mock(program_files_dir)
@@ -40,29 +53,31 @@ def list_files(path, file_list):
 """                THE MAIN                """
 """========================================"""
 
+program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 
-print('Using ' + program_files_dir +' as program file')
+if not os.path.exists(program_files_dir):
+    os.mkdir(program_files_dir)
 
+print('Using ' + program_files_dir + ' as program file')
 
-socket = mock(program_files_dir)#TODO put real socket here
-
-if os.path.isfile(program_files_dir +'cert/public_key.txt')== False:
+if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
-img = qrcode.make('tudo o que o nuno quer')#TODO remove
-img.show()                                 #TODO remove
+socket = mock(program_files_dir)  # TODO put real socket here
 
 files_list = []
 list_files(program_files_dir, files_list)
+
+
 """============== MAIN LOOP ==============="""
 
 print("Insert Commands, for help insert help:")
 print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
 command = ["start"]
-while command != "exit":
-    command = raw_input(">>").lower().split()
+while command[0] != "exit":
+    command = raw_input(">> ").lower().split()
     if command[0] == "help":
         print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
 
@@ -71,7 +86,7 @@ while command != "exit":
 
     elif command[0] == "open":
         if len(command) == 1:
-            filename = raw_input("Insert the file to open:\n>>")
+            filename = raw_input("Insert the file to open:\n>> ")
         else:
             filename = command[1]
         if filename in files_list:
@@ -85,19 +100,17 @@ while command != "exit":
 
     elif command[0] == "create":
         if len(command) == 1:
-            filename = raw_input("new file name:\n>>")
+            filename = raw_input("new file name:\n>> ")
         else:
             filename = command[1]
         newf = open(program_files_dir + filename, "w")
-        newf.close();
+        newf.close()
         encrypt_file(key_size, filename, program_files_dir)
         os.remove(program_files_dir + filename)
         files_list.append(filename)
-        print(filename +" created!!")
+        print(filename + " created!!")
 
     elif command[0] != "exit":
-        print("that command don't exist, enter help")
+        print("that command doesn't exist, enter help")
 
-
-
-
+socket.close()

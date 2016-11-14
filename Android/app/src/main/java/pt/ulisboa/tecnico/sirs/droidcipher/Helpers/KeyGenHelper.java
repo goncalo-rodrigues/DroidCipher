@@ -16,6 +16,8 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
+import javax.crypto.spec.SecretKeySpec;
+
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
 /**
@@ -24,6 +26,30 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
 public class KeyGenHelper {
     public static final String LOG_TAG = KeyGenHelper.class.getSimpleName();
+
+
+    public static SecretKeySpec getLastCommunicationKey(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
+        String keyString = prefs.getString(Constants.COMMUNICATION_KEY_PREF, null);
+        byte[] keyBytes = Base64.decode(keyString, Base64.DEFAULT);
+        return new SecretKeySpec(keyBytes, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+    }
+
+    public static byte[] getLastCommunicationIV(Context context) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
+        String ivString = prefs.getString(Constants.COMMUNICATION_IV_PREF, null);
+        byte[] ivBytes = Base64.decode(ivString, Base64.DEFAULT);
+        return ivBytes;
+    }
+
+    public static void saveCommuncationKey(Context context, byte[] keyBytes, byte[] ivBytes) {
+        SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
+        String keyString = Base64.encodeToString(keyBytes, Base64.DEFAULT);
+        String ivString = Base64.encodeToString(ivBytes, Base64.DEFAULT);
+        prefs.edit().putString(Constants.COMMUNICATION_KEY_PREF, keyString).apply();
+        prefs.edit().putString(Constants.COMMUNICATION_IV_PREF, keyString).apply();
+    }
+
 
     public static PrivateKey getPrivateKey(Context context) {
         try {

@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.util.Log;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
+import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
+import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
 
 /**
  * Created by goncalo on 04-11-2016.
@@ -25,6 +27,12 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         /*
         Accept new Connection
          */
+        KeyGenHelper.saveCommuncationKey(context, null, null);
+        if (context instanceof IAcceptConnectionCallback) {
+            ((IAcceptConnectionCallback) context).OnAcceptConnection();
+        }
+
+        //TODO: Accept new connection
 
     }
 }

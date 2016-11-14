@@ -6,5 +6,7 @@
     <string name="accept">Accept</string>
     <string name="close">Close</string>
     <string name="appImage">App image</string>
-    <string name="UUID">d1418830-a213-11e6-bdf4-0800200c9a66</string>
+    <string name="androidUUID">d1418830-a213-11e6-bdf4-0800200c9a66</string>
+    <string name="pcUUID">d20782ff-ab2c-43ad-9b23-19dc63a333ef</string>
+    <string name="pcServiceName">DroidCipher PC</string>
 </resources>
