@@ -43,19 +43,19 @@ def list_files(path, file_list):
 
 print('Using ' + program_files_dir +' as program file')
 
+
+socket = mock(program_files_dir)#TODO put real socket here
+
 if os.path.isfile(program_files_dir +'cert/public_key.txt')== False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
-socket = mock(program_files_dir)#TODO put real socket here
+img = qrcode.make('tudo o que o nuno quer')#TODO remove
+img.show()                                 #TODO remove
 
 files_list = []
 list_files(program_files_dir, files_list)
-
-img = qrcode.make('tudo o que o nuno quer')
-img.show()
-
 """============== MAIN LOOP ==============="""
 
 print("Insert Commands, for help insert help:")

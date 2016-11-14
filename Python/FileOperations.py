@@ -86,10 +86,3 @@ def decrypt_file(filename, path, socket):
         os.remove(path + filename)
     os.rename(out_temporary_name, path +filename)
 
-"""this function is to simulate asking the android"""
-def decrypt_key(encrypted_key,path):
-
-    private_key = RSA.importKey(open(path+'private_key.txt').read(), passphrase='password')
-    cipher = PKCS1_OAEP.new(private_key)
-    decrypted = cipher.decrypt(encrypted_key)
-    return decrypted
