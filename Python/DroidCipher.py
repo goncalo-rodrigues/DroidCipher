@@ -1,6 +1,5 @@
 import os.path
 import re
-
 import base64
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
@@ -37,7 +36,6 @@ def make_first_connection(program_files_dir, key_size):
     """TODO chang this to use smartphone"""
     cert_get_mock(program_files_dir)
 
-
 def list_files(path, file_list):
     print("Existing Files:")
     for file_in_dir in os.listdir(path):
@@ -73,9 +71,7 @@ files_list = []
 list_files(program_files_dir, files_list)
 
 
-"""========================================"""
-"""               MAIN LOOP                """
-"""========================================"""
+"""============== MAIN LOOP ==============="""
 
 print("Insert Commands, for help insert help:")
 print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
