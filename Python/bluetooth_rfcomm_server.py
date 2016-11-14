@@ -25,8 +25,10 @@ def create_pc_service(uuid):
     android_uuid = str(client_sock.recv(1024))
     android_mac = str(client_sock.recv(1024))
 
+    # TODO: Check the public key's integrity. If there's a problem, it should try again.
+
     client_sock.close()
     stop_advertising(server_sock)
     server_sock.close()
 
-    return (public_key, hash, android_uuid, android_mac)
+    return (public_key, android_uuid, android_mac)

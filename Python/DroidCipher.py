@@ -32,7 +32,6 @@ def make_first_connection(program_files_dir, key_size):
     img.show()
     #android_info = create_pc_service(uuid)
 
-    # TODO: Check if the public key's integrity is right
     # TODO: Store Android's mac and uuid
 
     """TODO chang this to use smartphone"""
@@ -67,6 +66,7 @@ if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
+#socket = connect_to_phone_service(android_mac, android_uuid)
 socket = mock(program_files_dir)  # TODO put real socket here
 
 files_list = []
