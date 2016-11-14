@@ -15,6 +15,8 @@ from Crypto.Cipher import AES
 from Crypto import Random
 import time
 from Crypto.PublicKey import RSA
+from SmartphoneProxy import SmartphoneProxy
+
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
@@ -76,8 +78,15 @@ if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
-#socket = connect_to_phone_service(android_mac, android_uuid)
-socket = mock(program_files_dir)  # TODO put real socket here
+#metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
+#metadata = marshal.load(metadata_file)
+#android_mac = metadata[1]
+#android_uuid = metadata[0]
+android_mac = "XXX REMOVE"
+android_uuid = "XXX REMOVE"
+proxy = SmartphoneProxy(android_mac, android_uuid)
+#metadata_file.close()
+#proxy = mock(program_files_dir)  # TODO put real socket here
 
 files_list = []
 list_files(program_files_dir, files_list)
@@ -102,7 +111,7 @@ while command[0] != "exit":
         else:
             filename = command[1]
         if filename in files_list:
-            decrypt_file(filename, program_files_dir, socket)
+            decrypt_file(filename, program_files_dir, proxy)
             timestamp = os.stat(program_files_dir + filename).st_mtime
             os.system('xterm -e "nano ' + program_files_dir + filename + '"')
             timestamp2 = os.stat(program_files_dir + filename).st_mtime
@@ -125,4 +134,4 @@ while command[0] != "exit":
     elif command[0] != "exit":
         print("that command doesn't exist, enter help")
 
-socket.close()
+proxy.close()
