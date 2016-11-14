@@ -76,7 +76,12 @@ if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
         os.mkdir(program_files_dir + 'cert')
     make_first_connection(program_files_dir, key_size)
 
+#metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
+#metadata = marshal.load(metadata_file)
+#android_mac = metadata[1]
+#android_uuid = metadata[0]
 #socket = connect_to_phone_service(android_mac, android_uuid)
+#metadata_file.close()
 socket = mock(program_files_dir)  # TODO put real socket here
 
 files_list = []
