@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
 import android.content.Context;
@@ -17,6 +18,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 public class ServerThread extends Thread {
     private final String LOG_TAG = ServerThread.class.getSimpleName();
     private final BluetoothServerSocket mmServerSocket;
+    private BluetoothSocket clientSocket = null;
     private final Context context;
     private final MainProtocolService providedService;
 
@@ -43,42 +45,47 @@ public class ServerThread extends Thread {
         mmServerSocket = tmp;
     }
 
+    // TODO: Check the lifetime of an accepted socket
     public void run() {
-        BluetoothSocket socket = null;
         InputStream in = null;
         OutputStream out = null;
         byte[] buffer = new byte[BUFFER_SIZE];
 
-        // Keep listening until exception occurs or a socket is returned
+        // Keep listening until connection to specific client occurs
+        while (clientSocket == null) {
+            try {
+                clientSocket = mmServerSocket.accept();
+            } catch (IOException e) { }
+        }
+
+        // From now on, it will only use the client socket to speak with the PC
+        try {
+            mmServerSocket.close();
+            in = clientSocket.getInputStream();
+            out = clientSocket.getOutputStream();
+        } catch (IOException e) { }
+
+        // It will provide the service until the clientSocket is closed
         while (true) {
             try {
-                socket = mmServerSocket.accept();
+                int size = in.read(buffer);
+                Log.i("Received message", new String(buffer, 0, size));
+
+                String messageType = buffer[0] == 0x0 ? Constants.MESSAGE_TYPE_NEWCONNECTION
+                        : Constants.MESSAGE_TYPE_FILEKEY;
+
+                // Provide the service
+                byte[] result = providedService.onNewMessage(messageType,
+                        Arrays.copyOfRange(buffer, 1, buffer.length));
+
+                if (result == null) {
+                    byte[] error = {0x0};
+                    result = error;
+                }
+                out.write(result);
+
             } catch (IOException e) {
                 break;
-            }
-
-            // If a connection was accepted
-            if (socket != null) {
-                try {
-                    in = socket.getInputStream();
-                    int size = in.read(buffer);
-                    Log.i("Received message", new String(buffer, 0, size));
-
-                    String messageType = buffer[0] == 0x0 ? Constants.MESSAGE_TYPE_NEWCONNECTION
-                            : Constants.MESSAGE_TYPE_FILEKEY;
-
-                    // Provide the service
-                    // TODO: See what to do when the result is null
-                    byte[] result = providedService.onNewMessage(messageType,
-                            Arrays.copyOfRange(buffer, 1, buffer.length));
-
-                    out = socket.getOutputStream();
-                    out.write(result);
-
-                    mmServerSocket.close();
-                } catch(IOException e) {
-                    break;
-                }
             }
         }
     }
@@ -86,7 +93,7 @@ public class ServerThread extends Thread {
     /** Will cancel the listening socket, and cause the thread to finish */
     public void cancel() {
         try {
-            mmServerSocket.close();
+            clientSocket.close();
         } catch (IOException e) { }
     }
 
