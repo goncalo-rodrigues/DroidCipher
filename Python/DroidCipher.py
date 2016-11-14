@@ -1,6 +1,7 @@
 import os.path
 import re
 import base64
+import marshal
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
@@ -13,27 +14,38 @@ from bluetooth import read_local_bdaddr
 from Crypto.Cipher import AES
 from Crypto import Random
 import time
+from Crypto.PublicKey import RSA
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
 
-# TODO: Use a random generator
-uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
-mac = read_local_bdaddr()[0]
+
 
 
 def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
     integrity_key = Random.new().read(key_size / 8)
     encoded_key = base64.b64encode(integrity_key)
+    # TODO: Use a random generator
+    uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
+    mac = read_local_bdaddr()[0]
     qrcode_content = mac + "!" + uuid + "!" + encoded_key
     img = qrcode.make(qrcode_content)
     img.show()
-    #android_info = create_pc_service(uuid)
 
-    # TODO: Store Android's mac and uuid
+    #android_info = create_pc_service(uuid, integrity_key)
 
-    """TODO chang this to use smartphone"""
+    #public_key = RSA.importKey(android_info[0])#need to be tested
+    #pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
+    #public_key_file = open(program_files_dir + 'cert/public_key.txt', 'w')
+    #public_key_file.write(pke)
+    #public_key_file.close()
+
+    #metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'w')
+    #marshal.dump([android_info[1], android_info[2]], metadata_file) #saves android_uuid and android_mac
+    #metadata_file.close()
+
+    """TODO change to previous lines"""
     cert_get_mock(program_files_dir)
 
 def list_files(path, file_list):
