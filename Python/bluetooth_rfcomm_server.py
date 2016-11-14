@@ -1,7 +1,7 @@
 from bluetooth import *
 
 
-def create_pc_service(uuid):
+def create_pc_service(uuid, integrity_key):
     server_sock = BluetoothSocket(RFCOMM)
     server_sock.bind(("", PORT_ANY))
     server_sock.listen(1)
