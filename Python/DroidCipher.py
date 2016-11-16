@@ -5,7 +5,6 @@ import marshal
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
-from bluetooth_rfcomm_client import connect_to_phone_service
 from bluetooth_rfcomm_server import create_pc_service
 from mock import mock
 from PIL import Image
@@ -84,7 +83,7 @@ if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
 #android_uuid = metadata[0]
 android_mac = "XXX REMOVE"
 android_uuid = "XXX REMOVE"
-proxy = SmartphoneProxy(android_mac, android_uuid)
+proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
 #metadata_file.close()
 #proxy = mock(program_files_dir)  # TODO put real socket here
 
@@ -134,4 +133,4 @@ while command[0] != "exit":
     elif command[0] != "exit":
         print("that command doesn't exist, enter help")
 
-proxy.close()
+
