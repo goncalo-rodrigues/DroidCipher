@@ -3,6 +3,8 @@ package pt.ulisboa.tecnico.sirs.droidcipher.Helpers;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
@@ -19,7 +21,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.R;
 
 public class NotificationsHelper {
 
-    public static int  startNewConnectionNotification(Context context){
+    public static int  startNewConnectionNotification(Context context, BluetoothDevice device){
         int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
 
         String ns = Context.NOTIFICATION_SERVICE;
@@ -28,6 +30,8 @@ public class NotificationsHelper {
 
         //the intent that is started when the notification is clicked
         Intent notificationIntent = new Intent(context, NewConnectionActivity.class);
+        notificationIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
+        notificationIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
         PendingIntent pendingNotificationIntent = PendingIntent.getActivity(context, 0,
                 notificationIntent, 0);
 

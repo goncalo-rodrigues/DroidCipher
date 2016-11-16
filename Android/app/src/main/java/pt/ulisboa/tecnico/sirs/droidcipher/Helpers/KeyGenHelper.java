@@ -44,10 +44,14 @@ public class KeyGenHelper {
 
     public static void saveCommuncationKey(Context context, byte[] keyBytes, byte[] ivBytes) {
         SharedPreferences prefs = context.getSharedPreferences(Constants.PREFERENCES_KEY_FILENAME, Context.MODE_PRIVATE);
-        String keyString = Base64.encodeToString(keyBytes, Base64.DEFAULT);
-        String ivString = Base64.encodeToString(ivBytes, Base64.DEFAULT);
+        String keyString = null;
+        String ivString = null;
+        if (keyBytes != null)
+            keyString = Base64.encodeToString(keyBytes, Base64.DEFAULT);
+        if (ivBytes != null)
+            ivString = Base64.encodeToString(ivBytes, Base64.DEFAULT);
         prefs.edit().putString(Constants.COMMUNICATION_KEY_PREF, keyString).apply();
-        prefs.edit().putString(Constants.COMMUNICATION_IV_PREF, keyString).apply();
+        prefs.edit().putString(Constants.COMMUNICATION_IV_PREF, ivString).apply();
     }
 
 

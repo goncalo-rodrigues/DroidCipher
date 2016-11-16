@@ -2,13 +2,17 @@ package pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers;
 
 import android.app.NotificationManager;
 import android.content.BroadcastReceiver;
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 
 /**
  * Created by goncalo on 04-11-2016.
@@ -28,12 +32,16 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         Accept new Connection
          */
         KeyGenHelper.saveCommuncationKey(context, null, null);
+
+
         if (context instanceof IAcceptConnectionCallback) {
             ((IAcceptConnectionCallback) context).OnAcceptConnection();
+        } else {
+            MainProtocolService.LocalBinder binder = (MainProtocolService.LocalBinder)
+                    peekService(context, new Intent(context, MainProtocolService.class));
+            if (binder != null)
+                binder.getService().OnAcceptConnection();
         }
-
-        //TODO: Accept new connection
-
     }
 }
 

@@ -2,8 +2,11 @@ package pt.ulisboa.tecnico.sirs.droidcipher.Services;
 
 import android.app.IntentService;
 import android.app.Service;
+import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.hardware.camera2.params.BlackLevelPattern;
 import android.inputmethodservice.Keyboard;
+import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.util.Log;
@@ -30,6 +33,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 
 public class MainProtocolService extends Service implements IAcceptConnectionCallback {
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
+    private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
     private byte[] commIV = null;
 
@@ -46,60 +50,65 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
-        return null;
+        return mBinder;
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
         if (serverThread == null) {
             serverThread = new ServerThread(this);
-            serverThread.run();
+            serverThread.start();
+        }
+
+        if (!KeyGenHelper.isKeyPairStored(this)) {
+            KeyGenHelper.generateNewKeyPair(this);
         }
 
         return super.onStartCommand(intent, flags, startId);
     }
 
-    public byte[] onNewMessage(String messageType, byte [] message) {
-        if (messageType.equals(Constants.MESSAGE_TYPE_NEWCONNECTION)) {
-            accepted = false;
-            if (privateKey == null) {
-                privateKey = KeyGenHelper.getPrivateKey(this);
-            }
-            byte[] decrypted = null;
+    public byte[] onNewConnection(byte[] message, BluetoothDevice device) {
+        accepted = false;
+        if (privateKey == null) {
+            privateKey = KeyGenHelper.getPrivateKey(this);
+        }
+        byte[] decrypted = null;
+        try {
+            decrypted = CipherHelper.RSADecrypt(privateKey, message);
+        } catch (InvalidKeyException e) {
+            e.printStackTrace();
+            Log.e(LOG_TAG, "Invalid private key");
+        }
+
+        byte[] decryptedIV = Arrays.copyOfRange(decrypted, 0, 15);
+        byte[] decryptedKey = Arrays.copyOfRange(decrypted, 16, decrypted.length);
+
+        if (Asserter.AssertAESKey(decryptedKey)) {
+            newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+            newCommIV = decryptedIV;
+        } else {
+            Log.e(LOG_TAG, "Malformed communication key");
+        }
+
+        NotificationsHelper.startNewConnectionNotification(this, device);
+        synchronized(this) {
             try {
-                decrypted = CipherHelper.RSADecrypt(privateKey, message);
-            } catch (InvalidKeyException e) {
-                e.printStackTrace();
-                Log.e(LOG_TAG, "Invalid private key");
+                // Calling wait() will block this thread until another thread
+                // calls notify() on the object.
+                this.wait();
+            } catch (InterruptedException e) {
+                // Happens if someone interrupts your thread.
             }
-
-            byte[] decryptedIV = Arrays.copyOfRange(decrypted, 0, 15);
-            byte[] decryptedKey = Arrays.copyOfRange(decrypted, 16, decrypted.length);
-
-            if (Asserter.AssertAESKey(decryptedKey)) {
-                newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
-                newCommIV = decryptedIV;
-            } else {
-                Log.e(LOG_TAG, "Malformed communication key");
-            }
-
-            NotificationsHelper.startNewConnectionNotification(this);
-            synchronized(this) {
-                try {
-                    // Calling wait() will block this thread until another thread
-                    // calls notify() on the object.
-                    this.wait();
-                } catch (InterruptedException e) {
-                    // Happens if someone interrupts your thread.
-                }
-            }
-            if (accepted) {
-                //todo: decide what to respond on accept/reject of comm key
-                return new byte[] {'o', 'k'};
-            } else {
-                return new byte[] {'n', 'o', 'k'};
-            }
-        } else if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
+        }
+        if (accepted) {
+            //todo: decide what to respond on accept/reject of comm key
+            return new byte[] {'o', 'k'};
+        } else {
+            return new byte[] {'n', 'o', 'k'};
+        }
+    }
+    public byte[] onNewMessage(String messageType, byte [] message) {
+         if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
 
             // loading to memory
             if (commKey == null) {
@@ -127,8 +136,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 Log.e(LOG_TAG, "Invalid key!");
             }
 
-
         }
+        else {
+             Log.e(LOG_TAG, "Unknown message type");
+         }
         return null;
     }
 
@@ -161,6 +172,17 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         synchronized(this) {
             accepted = false;
             this.notify();
+        }
+    }
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        public MainProtocolService getService() {
+            // Return this instance so clients can call public methods
+            return MainProtocolService.this;
         }
     }
 }
