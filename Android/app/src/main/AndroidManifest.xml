@@ -18,11 +18,13 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".BroadcastReceivers.DismissNotificationReceiver" />
-        <receiver android:name=".BroadcastReceivers.AcceptConnectionReceiver" />
-        <receiver android:name=".BroadcastReceivers.BluetoothBondChangedReceiver">
+        <receiver android:name=".broadcastreceivers.DismissNotificationReceiver" />
+        <receiver android:name=".broadcastreceivers.AcceptConnectionReceiver" />
+        <receiver android:name=".broadcastreceivers.BluetoothBondChangedReceiver">
             <intent-filter>
+                <action android:name="android.bluetooth.device.action.ACL_CONNECTED"/>
                 <action android:name="android.bluetooth.device.action.BOND_STATE_CHANGED"/>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
             </intent-filter>
         </receiver>
 

@@ -4,7 +4,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
+import android.content.ComponentName;
 import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
+import android.os.IBinder;
 import android.util.Log;
 
 import java.io.IOException;
@@ -25,10 +29,10 @@ public class ServerThread extends Thread {
     // TODO: Change the size, so that it receives all the sent bytes on the first try
     private final int BUFFER_SIZE = 1024;
 
-    public ServerThread(Context context) {
+    public ServerThread(MainProtocolService context) {
         BluetoothServerSocket tmp = null;
         this.context = context;
-        providedService = new MainProtocolService();
+        providedService = context;
 
         BluetoothAdapter device = BluetoothAdapter.getDefaultAdapter();
 
@@ -43,6 +47,7 @@ public class ServerThread extends Thread {
         } catch (IOException e) { }
 
         mmServerSocket = tmp;
+
     }
 
     // TODO: Check the lifetime of an accepted socket
@@ -69,14 +74,18 @@ public class ServerThread extends Thread {
         while (true) {
             try {
                 int size = in.read(buffer);
-                Log.i("Received message", new String(buffer, 0, size));
+                Log.i(LOG_TAG, "Received message: " + new String(buffer, 0, size));
 
                 String messageType = buffer[0] == 0x0 ? Constants.MESSAGE_TYPE_NEWCONNECTION
                         : Constants.MESSAGE_TYPE_FILEKEY;
-
-                // Provide the service
-                byte[] result = providedService.onNewMessage(messageType,
-                        Arrays.copyOfRange(buffer, 1, buffer.length));
+                byte[] result;
+                byte[] message = Arrays.copyOfRange(buffer, 1, size);
+                if (messageType == Constants.MESSAGE_TYPE_NEWCONNECTION) {
+                    result = providedService.onNewConnection(message, clientSocket.getRemoteDevice());
+                } else {
+                    // Provide the service
+                    result = providedService.onNewMessage(messageType, message);
+                }
 
                 if (result == null) {
                     byte[] error = {0x0};

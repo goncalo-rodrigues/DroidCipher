@@ -9,6 +9,7 @@ import android.inputmethodservice.Keyboard;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.util.Base64;
 import android.util.Log;
 
 import java.security.InvalidKeyException;
@@ -54,7 +55,14 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
 
     @Override
+    public void onCreate() {
+        Log.d(LOG_TAG, "Created");
+        super.onCreate();
+    }
+
+    @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(LOG_TAG, "Started");
         if (serverThread == null) {
             serverThread = new ServerThread(this);
             serverThread.start();
@@ -80,8 +88,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             Log.e(LOG_TAG, "Invalid private key");
         }
 
-        byte[] decryptedIV = Arrays.copyOfRange(decrypted, 0, 15);
-        byte[] decryptedKey = Arrays.copyOfRange(decrypted, 16, decrypted.length);
+        byte[] nonce = Arrays.copyOfRange(decrypted, 0, 4);
+        byte[] decryptedIV = Arrays.copyOfRange(decrypted, 4, 20);
+        byte[] decryptedKey = Arrays.copyOfRange(decrypted, 20, decrypted.length);
 
         if (Asserter.AssertAESKey(decryptedKey)) {
             newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
@@ -101,10 +110,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             }
         }
         if (accepted) {
-            //todo: decide what to respond on accept/reject of comm key
-            return new byte[] {'o', 'k'};
+            return nonce;
         } else {
-            return new byte[] {'n', 'o', 'k'};
+            return null;
         }
     }
     public byte[] onNewMessage(String messageType, byte [] message) {
@@ -120,6 +128,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             if (privateKey == null) {
                 privateKey = KeyGenHelper.getPrivateKey(this);
             }
+
+            Log.d(LOG_TAG, "IV:" + Base64.encodeToString(commIV, Base64.DEFAULT));
             boolean accepted = commKey != null && commIV != null && privateKey != null;
             if (!accepted) {
                 Log.d(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");

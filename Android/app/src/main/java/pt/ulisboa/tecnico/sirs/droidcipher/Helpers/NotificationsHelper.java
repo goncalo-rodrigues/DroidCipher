@@ -3,14 +3,13 @@ package pt.ulisboa.tecnico.sirs.droidcipher.Helpers;
 import android.app.Notification;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
-import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.AcceptConnectionReceiver;
-import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.DismissNotificationReceiver;
+import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
+import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.NewConnectionActivity;
 import pt.ulisboa.tecnico.sirs.droidcipher.R;
@@ -60,6 +59,7 @@ public class NotificationsHelper {
                 .setContentIntent(pendingNotificationIntent)
                 .addAction(R.drawable.ic_check_black_24dp, context.getString(R.string.accept), pendingAcceptIntent)
                 .addAction(R.drawable.ic_close_black_24dp, context.getString(R.string.close), pendingCloseIntent)
+                .setPriority(Notification.PRIORITY_MAX)
                 .setAutoCancel(true);
 
 
