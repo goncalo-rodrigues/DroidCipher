@@ -107,6 +107,7 @@ public class ServerThread extends Thread {
         try {
             clientSocket.close();
         } catch (IOException e) { }
+        catch (NullPointerException e) {}
     }
 
 }

@@ -4,6 +4,7 @@ import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.hardware.camera2.params.BlackLevelPattern;
@@ -40,6 +41,9 @@ import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 
 public class MainProtocolService extends Service implements IAcceptConnectionCallback {
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
+    public static final String STATE_CHANGE_ACTION = "action:service_state_change";
+    public static final String EXTRA_STATE = "extra:service_state";
+
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
     private byte[] commIV = null;
@@ -50,6 +54,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     private PrivateKey privateKey = null;
     private ServerThread serverThread;
     private boolean accepted = false;
+
+    public ServiceState state;
     public MainProtocolService() {
         super();
     }
@@ -63,16 +69,16 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     @Override
     public void onCreate() {
         Log.d(LOG_TAG, "Created");
+        state = new ServiceState();
+        state.setOn(false);
+        state.setConnected(false);
+        state.setWaitingUser(false);
         super.onCreate();
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
-        Log.d(LOG_TAG, "Started");
-        if (serverThread == null) {
-            serverThread = new ServerThread(this);
-            serverThread.start();
-        }
+
 
         if (!KeyGenHelper.isKeyPairStored(this)) {
             KeyGenHelper.generateNewKeyPair(this);
@@ -82,13 +88,32 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         switch (command) {
             case Constants.ACCEPT_COMMAND:
                 OnAcceptConnection();
-                break;
+                return super.onStartCommand(intent, flags, startId);
             case Constants.REJECT_COMMAND:
                 OnRejectConnection();
-                break;
+                return super.onStartCommand(intent, flags, startId);
+            case Constants.RESET_CONN_COMMAND:
+                OnStopConnection();
+                return super.onStartCommand(intent, flags, startId);
+            case Constants.STOP_COMMAND:
+                stopSelf();
+                return START_NOT_STICKY;
         }
-        // TODO: check if bluetooth is on
-        return super.onStartCommand(intent, flags, startId);
+        BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+        if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
+            Log.d(LOG_TAG, "Started");
+            if (serverThread == null) {
+                serverThread = new ServerThread(this);
+                serverThread.start();
+            }
+
+            state.setOn(true);
+            broadcastState();
+            return super.onStartCommand(intent, flags, startId);
+        }
+        stopSelf();
+        return START_NOT_STICKY;
+
     }
 
     public byte[] onNewConnection(byte[] message, BluetoothDevice device) {
@@ -115,6 +140,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             Log.e(LOG_TAG, "Malformed communication key");
         }
 
+        state.setWaitingUser(true);
+        broadcastState();
         NotificationsHelper.startNewConnectionNotification(this, device);
         synchronized(this) {
             try {
@@ -127,8 +154,14 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         }
         if (accepted) {
             setForeground();
+            state.setCurrentConnection(device);
+            state.setWaitingUser(false);
+            state.setConnected(true);
+            broadcastState();
             return nonce;
         } else {
+            state.setWaitingUser(false);
+            broadcastState();
             return null;
         }
     }
@@ -175,9 +208,12 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
     @Override
     public void onDestroy() {
-        KeyGenHelper.saveCommuncationKey(this, null, null);
         stopForeground(true);
-        serverThread.cancel();
+        OnStopConnection();
+        state.setOn(false);
+        if (serverThread != null)
+            serverThread.cancel();
+        broadcastState();
     }
 
     @Override
@@ -202,6 +238,23 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             accepted = false;
             this.notify();
         }
+    }
+
+    public void OnStopConnection() {
+        commKey = null;
+        commIV = null;
+        KeyGenHelper.saveCommuncationKey(this, null, null);
+        state.setCurrentConnection(null);
+        state.setConnected(false);
+        state.setWaitingUser(false);
+        broadcastState();
+
+    }
+
+    public void broadcastState() {
+        Intent intent = new Intent(STATE_CHANGE_ACTION);
+        intent.putExtra(EXTRA_STATE, state);
+        sendBroadcast(intent);
     }
 
     public void setForeground() {

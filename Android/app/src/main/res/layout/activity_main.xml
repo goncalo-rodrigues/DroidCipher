@@ -11,10 +11,82 @@
     android:paddingBottom="@dimen/activity_vertical_margin"
     tools:context="pt.ulisboa.tecnico.sirs.droidcipher.MainActivity">
 
-    <EditText
-        android:layout_width="wrap_content"
+    <GridLayout
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Hello World!"
-        android:id="@+id/publickey_tv"/>
+        android:columnCount="2">
+        <TextView android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_columnWeight="1"
+            android:text="Service running"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_columnWeight="1"
+            android:layout_column="1"
+            android:textAlignment="textEnd"
+            android:id="@+id/main_service_running_tv"
+            android:text="No"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_columnWeight="1"
+            android:text="Connected"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_columnWeight="1"
+            android:layout_column="1"
+            android:textAlignment="textEnd"
+            android:id="@+id/main_connected_tv"
+            android:text="No"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_columnWeight="1"
+            android:text="New incoming connection"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_columnWeight="1"
+            android:layout_column="1"
+            android:textAlignment="textEnd"
+            android:id="@+id/main_waiting_connection_tv"
+            android:text="No"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_columnWeight="1"
+            android:text="Device name"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_columnWeight="1"
+            android:layout_column="1"
+            android:textAlignment="textEnd"
+            android:id="@+id/main_device_name_tv"
+            android:text="-"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_column="0"
+            android:layout_columnWeight="1"
+            android:text="Device address"/>
+        <TextView android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_columnWeight="1"
+            android:layout_column="1"
+            android:textAlignment="textEnd"
+            android:id="@+id/main_device_addr_tv"
+            android:text="-"/>
+
+    </GridLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true">
+        <Button android:layout_width="0dp"
+            android:id="@+id/main_reset_connection"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reset Connection"/>
+        <Button android:layout_width="0dp"
+            android:id="@+id/main_toggle_service"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Stop Service"/>
+    </LinearLayout>
+
 
 </RelativeLayout>

@@ -24,4 +24,8 @@ public final class Constants {
 
     public static final int ACCEPT_COMMAND = 1;
     public static final int REJECT_COMMAND = 2;
+    public static final int RESET_CONN_COMMAND = 3;
+    public static final int STOP_COMMAND = 4;
+
+
 }
