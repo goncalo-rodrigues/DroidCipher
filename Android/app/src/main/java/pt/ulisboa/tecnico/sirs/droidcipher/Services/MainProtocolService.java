@@ -208,7 +208,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
     @Override
     public void onDestroy() {
-        stopForeground(true);
         OnStopConnection();
         state.setOn(false);
         if (serverThread != null)
@@ -246,6 +245,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         KeyGenHelper.saveCommuncationKey(this, null, null);
         state.setCurrentConnection(null);
         state.setConnected(false);
+        stopForeground(true);
         broadcastState();
 
     }
