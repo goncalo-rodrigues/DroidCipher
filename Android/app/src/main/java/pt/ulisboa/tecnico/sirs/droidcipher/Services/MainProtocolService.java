@@ -246,7 +246,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         KeyGenHelper.saveCommuncationKey(this, null, null);
         state.setCurrentConnection(null);
         state.setConnected(false);
-        state.setWaitingUser(false);
         broadcastState();
 
     }
