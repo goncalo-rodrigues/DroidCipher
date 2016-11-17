@@ -7,6 +7,7 @@ from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 import base64
+from Crypto import Random
 
 class MyClass:
     def __init__(self, dir_path, key_size, socket):
