@@ -2,8 +2,10 @@ from Crypto.Cipher import AES
 from Crypto import Random
 import os.path
 import marshal
+import base64
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
+from Crypto.Hash import SHA256
 
 
 
@@ -21,8 +23,9 @@ def encrypt_file(keySize, filename, path):
     """saves info to later decipher"""
     file_size = os.path.getsize(path + filename)
     key = Random.new().read(keySize/8)
+    print("created file key:" + base64.b64encode(key))
     public_key = RSA.importKey(open(path +'cert/public_key.txt').read(), passphrase='password')
-    asymmetric_cipher = PKCS1_OAEP.new(public_key)
+    asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo = SHA256)#mudar isto para sha256
     cipher_key = asymmetric_cipher.encrypt(key)
     iv = Random.new().read(AES.block_size)
     marshal.dump([file_size, cipher_key, iv], metadata_file)
@@ -63,7 +66,6 @@ def decrypt_file(filename, path, socket):
     metadata = marshal.load(metadata_file)
     """saves info to later decipher"""
     file_size = metadata[0]
-    """falta desencriptar chave"""
     encrypted_key = metadata[1]
     key = socket.decrypt_key(encrypted_key)
     iv = metadata[2]

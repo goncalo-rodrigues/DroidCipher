@@ -1,5 +1,5 @@
 import bluetooth
-
+import base64
 
 def connect_to_phone_service(server_address, uuid):
     service = bluetooth.find_service(address=server_address, uuid=uuid)
@@ -16,17 +16,19 @@ def connect_to_phone_service(server_address, uuid):
     return socket
 
 
-def update_communication_key(socket, encrypted_iv_communication_key):
+def exchange_communication_key(socket, encrypted_iv_communication_key):
     NUMBER_OF_TRIES = 5
     try_number = 0
 
     # TODO: Check if the operator ID needs to be encrypted as well
     message = chr(0) + encrypted_iv_communication_key
-
+    print("message:" + base64.b64encode(message)+"len(message)"+ str(len(message)))
     while try_number < NUMBER_OF_TRIES:
+        print("message with communication key send")
         socket.send(message)
-        response = str(socket.recv())
-
+        print("message with communication received by android")
+        response = str(socket.recv(1024))
+        print("response received")
         if response.startswith("OK", 0, len(response)):
             return
         try_number += 1
@@ -37,7 +39,7 @@ def update_communication_key(socket, encrypted_iv_communication_key):
     non_existing_statement()
 
 
-def request_file_key(socket, double_encrypted_file_key, file_key_hash):
+def request_file_key(socket, double_encrypted_file_key):
     NUMBER_OF_TRIES = 5
     try_number = 0
 
@@ -46,14 +48,12 @@ def request_file_key(socket, double_encrypted_file_key, file_key_hash):
 
     while try_number < NUMBER_OF_TRIES:
         socket.send(message)
-        response = socket.recv()
 
+        response = socket.recv(1024)
         # TODO: Check if this will work (does one char have size == 1?)
         # The following will be in pseudo-code
         if len(response) > 1:
-            # TODO: Check the received file key's integrity
-            if(key_integrity_ok(response))
-                return unencrypted_key
+            return response
 
         try_number += 1
 
