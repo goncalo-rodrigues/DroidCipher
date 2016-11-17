@@ -16,7 +16,7 @@ def connect_to_phone_service(server_address, uuid):
     return socket
 
 
-def exchange_communication_key(socket, encrypted_iv_communication_key):
+def exchange_communication_key(socket, encrypted_iv_communication_key,nonce):
     NUMBER_OF_TRIES = 5
     try_number = 0
 
@@ -29,7 +29,7 @@ def exchange_communication_key(socket, encrypted_iv_communication_key):
         print("message with communication received by android")
         response = str(socket.recv(1024))
         print("response received")
-        if response.startswith("OK", 0, len(response)):
+        if response == nonce:
             return
         try_number += 1
 
