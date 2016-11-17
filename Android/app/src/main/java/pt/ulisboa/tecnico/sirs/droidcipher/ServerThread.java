@@ -56,6 +56,9 @@ public class ServerThread extends Thread {
         OutputStream out = null;
         byte[] buffer = new byte[BUFFER_SIZE];
 
+
+        Log.d(LOG_TAG, "Listening...");
+
         // Keep listening until connection to specific client occurs
         while (clientSocket == null) {
             try {

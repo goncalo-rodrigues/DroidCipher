@@ -31,10 +31,9 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
         if (context instanceof IAcceptConnectionCallback) {
             ((IAcceptConnectionCallback) context).OnRejectConnection();
         } else {
-            MainProtocolService.LocalBinder binder = (MainProtocolService.LocalBinder)
-                    peekService(context, new Intent(context, MainProtocolService.class));
-            if (binder != null)
-                binder.getService().OnRejectConnection();
+            Intent serviceIntent = new Intent(context, MainProtocolService.class);
+            serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.REJECT_COMMAND);
+            context.startService(serviceIntent);
         }
     }
 }

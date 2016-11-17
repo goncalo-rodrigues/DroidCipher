@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
@@ -40,7 +41,10 @@ public class MainActivity extends AppCompatActivity {
                     0);
         } else {
             Log.d(LOG_TAG, "Bluetooth has been accepted before.");
-            init();
+            BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+            if (mBluetoothAdapter == null && mBluetoothAdapter.isEnabled()) {
+                init();
+            }
         }
         EditText tv = (EditText) findViewById(R.id.publickey_tv);
         tv.setText(KeyGenHelper.printKey(KeyGenHelper.getPublicKey(this)));

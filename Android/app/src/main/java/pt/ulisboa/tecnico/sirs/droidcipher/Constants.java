@@ -20,4 +20,8 @@ public final class Constants {
     public static final String MESSAGE_TYPE_NEWCONNECTION = "message_type:new_connection";
     public static final String MESSAGE_TYPE_FILEKEY = "message_type:file_key";
 
+    public static final String SERVICE_COMMAND_EXTRA = "extras:service_command";
+
+    public static final int ACCEPT_COMMAND = 1;
+    public static final int REJECT_COMMAND = 2;
 }

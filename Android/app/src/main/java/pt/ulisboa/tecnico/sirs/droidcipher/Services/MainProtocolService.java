@@ -1,6 +1,8 @@
 package pt.ulisboa.tecnico.sirs.droidcipher.Services;
 
 import android.app.IntentService;
+import android.app.Notification;
+import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
@@ -9,6 +11,8 @@ import android.inputmethodservice.Keyboard;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
+import android.support.v4.media.MediaBrowserCompat;
 import android.util.Base64;
 import android.util.Log;
 
@@ -26,6 +30,8 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.CipherHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.NotificationsHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
+import pt.ulisboa.tecnico.sirs.droidcipher.MainActivity;
+import pt.ulisboa.tecnico.sirs.droidcipher.R;
 import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 
 /**
@@ -72,6 +78,16 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             KeyGenHelper.generateNewKeyPair(this);
         }
 
+        int command = intent.getIntExtra(Constants.SERVICE_COMMAND_EXTRA, -1);
+        switch (command) {
+            case Constants.ACCEPT_COMMAND:
+                OnAcceptConnection();
+                break;
+            case Constants.REJECT_COMMAND:
+                OnRejectConnection();
+                break;
+        }
+        // TODO: check if bluetooth is on
         return super.onStartCommand(intent, flags, startId);
     }
 
@@ -110,6 +126,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             }
         }
         if (accepted) {
+            setForeground();
             return nonce;
         } else {
             return null;
@@ -158,6 +175,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
     @Override
     public void onDestroy() {
+        KeyGenHelper.saveCommuncationKey(this, null, null);
+        stopForeground(true);
         serverThread.cancel();
     }
 
@@ -183,6 +202,20 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             accepted = false;
             this.notify();
         }
+    }
+
+    public void setForeground() {
+        Intent notificationIntent = new Intent(this, MainActivity.class);
+        PendingIntent pendingIntent=PendingIntent.getActivity(this, 0,
+                notificationIntent, PendingIntent.FLAG_ONE_SHOT);
+
+        Notification notification=new NotificationCompat.Builder(this)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .setContentText(getString(R.string.service_short))
+                .setContentTitle(getString(R.string.service_title))
+                .setContentIntent(pendingIntent).build();
+
+        startForeground(1, notification);
     }
 
     /**

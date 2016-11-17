@@ -34,10 +34,9 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         if (context instanceof IAcceptConnectionCallback) {
             ((IAcceptConnectionCallback) context).OnAcceptConnection();
         } else {
-            MainProtocolService.LocalBinder binder = (MainProtocolService.LocalBinder)
-                    peekService(context, new Intent(context, MainProtocolService.class));
-            if (binder != null)
-                binder.getService().OnAcceptConnection();
+            Intent serviceIntent = new Intent(context, MainProtocolService.class);
+            serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.ACCEPT_COMMAND);
+            context.startService(serviceIntent);
         }
     }
 }
