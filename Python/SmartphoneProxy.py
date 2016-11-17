@@ -43,14 +43,10 @@ class SmartphoneProxy:
 
     def sendCommunicationKey(self):
         public_key = RSA.importKey(open(os.environ['HOME'] + '/pythoncipher/' + 'cert/public_key.txt').read(), passphrase='password')
-        print(" public key:"+str(public_key.key)+ "\nkeydata:"+str(public_key.keydata))
         asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo=SHA256)
-        #asymmetric_cipher = PKCS1_OAEP.new(public_key)
-        print("iv:"+base64.b64encode(self.iv) +"\nkey:" +base64.b64encode(self.communication_key))
-        print("communication key size:"+str(len(self.communication_key)))
-        encrypted_message = asymmetric_cipher.encrypt(self.iv + self.communication_key)
-        print("message:" + base64.b64encode(encrypted_message) + "len(message)" + str(len(encrypted_message)))
-        exchange_communication_key(self.socket, encrypted_message)
+        nonce = Random.new().read(4)
+        encrypted_message = asymmetric_cipher.encrypt(nonce + self.iv + self.communication_key)
+        exchange_communication_key(self.socket, encrypted_message, nonce)
 
 """
 def connect_to_phone_service(server_address, uuid):
