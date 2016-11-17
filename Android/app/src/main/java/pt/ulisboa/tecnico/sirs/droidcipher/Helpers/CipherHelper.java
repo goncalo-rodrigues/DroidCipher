@@ -1,17 +1,21 @@
 package pt.ulisboa.tecnico.sirs.droidcipher.Helpers;
 
+import android.util.Base64;
 import android.util.Log;
 
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
+import java.security.spec.MGF1ParameterSpec;
 
 import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.spec.IvParameterSpec;
+import javax.crypto.spec.OAEPParameterSpec;
+import javax.crypto.spec.PSource;
 import javax.crypto.spec.SecretKeySpec;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
@@ -27,9 +31,9 @@ public class CipherHelper {
         //Decrypt messsage
         try {
             Cipher cipher = Cipher.getInstance(Constants.ASYMMETRIC_CIPHER_ALGORITHM);
-            cipher.init(Cipher.DECRYPT_MODE, key);
+            cipher.init(Cipher.DECRYPT_MODE, key, new OAEPParameterSpec("SHA-256", "MGF1", MGF1ParameterSpec.SHA256, PSource.PSpecified.DEFAULT));
             byte[] decryptedBytes = cipher.doFinal(cipheredText);
-            Log.d(LOG_TAG, "Decrypted message: " + new String(decryptedBytes));
+            Log.d(LOG_TAG, "Decrypted message (RSA): " + Base64.encodeToString(decryptedBytes, Base64.DEFAULT));
             return decryptedBytes;
         } catch (BadPaddingException e) {
             e.printStackTrace();
@@ -38,6 +42,8 @@ public class CipherHelper {
         } catch (NoSuchPaddingException e) {
             e.printStackTrace();
         } catch (IllegalBlockSizeException e) {
+            e.printStackTrace();
+        } catch (InvalidAlgorithmParameterException e) {
             e.printStackTrace();
         }
         return null;
@@ -51,7 +57,7 @@ public class CipherHelper {
             cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);
             byte[] cipherText = cipher.doFinal(plainText);
 
-            Log.d(LOG_TAG, "Encrypted message (AES): " + cipherText);
+            Log.d(LOG_TAG, "Encrypted message (AES): " + Base64.encodeToString(cipherText, Base64.DEFAULT));
             return cipherText;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();
@@ -75,7 +81,7 @@ public class CipherHelper {
             cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);
             byte[] plainText = cipher.doFinal(cipheredText);
 
-            Log.d(LOG_TAG, "Decrypted message (AES): " + plainText);
+            Log.d(LOG_TAG, "Decrypted message (AES): " + Base64.encodeToString(plainText, Base64.DEFAULT));
             return plainText;
         } catch (NoSuchAlgorithmException e) {
             e.printStackTrace();

@@ -15,6 +15,7 @@ import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
+import java.util.Arrays;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -112,6 +113,10 @@ public class KeyGenHelper {
 
     public static String printKey(Key key) {
         return Base64.encodeToString(key.getEncoded(), Base64.DEFAULT);
+    }
+
+    public static String printKeyHex(Key key) {
+        return Arrays.toString(key.getEncoded());
     }
 
     public static boolean isKeyPairStored(Context context) {

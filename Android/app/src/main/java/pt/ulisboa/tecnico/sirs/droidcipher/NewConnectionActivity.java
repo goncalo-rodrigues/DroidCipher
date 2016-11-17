@@ -1,6 +1,5 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
-import android.app.PendingIntent;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -9,8 +8,8 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.AcceptConnectionReceiver;
-import pt.ulisboa.tecnico.sirs.droidcipher.BroadcastReceivers.DismissNotificationReceiver;
+import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
+import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 
 public class NewConnectionActivity extends AppCompatActivity {
 
