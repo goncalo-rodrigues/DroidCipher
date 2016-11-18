@@ -17,7 +17,7 @@ public class ClientThread extends Thread {
     private final int BUFFER_SIZE = 10;
     private final int NUMBER_TRIES = 5;
 
-    public ClientThread(Context context, String mac, String pcUuid) {
+    public ClientThread(Context context, String mac, String pcUuid, byte[] publicKey, byte[] hash) {
         this.context = context;
 
         // Use a temporary object that is later assigned to mmSocket,

@@ -24,7 +24,7 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
         // if you want cancel notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(notificationId);
-        Log.d(LOG_TAG, "Accepting new connection");
+        Log.i(LOG_TAG, "Accepting new connection");
         /*
         Accept new Connection
          */

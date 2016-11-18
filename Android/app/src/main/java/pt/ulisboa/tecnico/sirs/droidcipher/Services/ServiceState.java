@@ -9,10 +9,10 @@ import android.os.Parcelable;
  */
 
 public class ServiceState implements Parcelable {
-    public boolean isOn;
-    public boolean isWaitingUser;
-    public boolean isConnected;
-    public BluetoothDevice currentConnection;
+    private boolean isOn;
+    private boolean isWaitingUser;
+    private boolean isConnected;
+    private Connection currentConnection;
 
     public boolean isOn() {
         return isOn;
@@ -20,14 +20,6 @@ public class ServiceState implements Parcelable {
 
     public void setOn(boolean on) {
         isOn = on;
-    }
-
-    public boolean isConnected() {
-        return isConnected;
-    }
-
-    public void setConnected(boolean connected) {
-        isConnected = connected;
     }
 
     public boolean isWaitingUser() {
@@ -38,12 +30,20 @@ public class ServiceState implements Parcelable {
         isWaitingUser = waitingUser;
     }
 
-    public BluetoothDevice getCurrentConnection() {
+    public Connection getCurrentConnection() {
         return currentConnection;
     }
 
-    public void setCurrentConnection(BluetoothDevice currentConnection) {
+    public void setCurrentConnection(Connection currentConnection) {
         this.currentConnection = currentConnection;
+    }
+
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
     }
 
     @Override
@@ -66,7 +66,7 @@ public class ServiceState implements Parcelable {
         this.isOn = in.readByte() != 0;
         this.isWaitingUser = in.readByte() != 0;
         this.isConnected = in.readByte() != 0;
-        this.currentConnection = in.readParcelable(BluetoothDevice.class.getClassLoader());
+        this.currentConnection = in.readParcelable(Connection.class.getClassLoader());
     }
 
     public static final Parcelable.Creator<ServiceState> CREATOR = new Parcelable.Creator<ServiceState>() {

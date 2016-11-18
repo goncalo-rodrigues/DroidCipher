@@ -9,4 +9,5 @@
     <string name="androidUUID">d1418830-a213-11e6-bdf4-0800200c9a66</string>
     <string name="service_short">Droidcipher is communicating with your PC</string>
     <string name="service_title">Connected</string>
+    <string name="cancel_connection">Cancel connection</string>
 </resources>

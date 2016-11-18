@@ -71,6 +71,13 @@
             android:id="@+id/main_device_addr_tv"
             android:text="-"/>
 
+        <EditText android:id="@+id/main_pubkey_tv"
+            android:layout_column="0"
+            android:layout_columnSpan="2"
+            android:layout_columnWeight="1"
+            android:layout_rowSpan="4"
+            />
+
     </GridLayout>
     <LinearLayout
         android:layout_width="match_parent"

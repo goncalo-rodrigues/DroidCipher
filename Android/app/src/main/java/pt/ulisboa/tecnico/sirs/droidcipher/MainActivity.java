@@ -10,6 +10,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
+import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
@@ -58,6 +59,9 @@ public class MainActivity extends AppCompatActivity {
         resetConnectionBt = (Button) findViewById(R.id.main_reset_connection);
         toggleServiceBt = (Button) findViewById(R.id.main_toggle_service);
 
+        // temporary
+        ((EditText) findViewById(R.id.main_pubkey_tv)).setText(KeyGenHelper.printKey(KeyGenHelper.getPublicKey(this)));
+
         resetConnectionBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,12 +86,12 @@ public class MainActivity extends AppCompatActivity {
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.BLUETOOTH)
                 != PackageManager.PERMISSION_GRANTED) {
-            Log.d(LOG_TAG, "Requesting bluetooth permission.");
+            Log.i(LOG_TAG, "Requesting bluetooth permission.");
             ActivityCompat.requestPermissions(this,
                     new String[]{Manifest.permission.BLUETOOTH},
                     0);
         } else {
-            Log.d(LOG_TAG, "Bluetooth has been accepted before.");
+            Log.i(LOG_TAG, "Bluetooth has been accepted before.");
             init();
         }
 
@@ -171,8 +175,8 @@ public class MainActivity extends AppCompatActivity {
         }
         connectedTv.setText("Yes");
         if (serviceState.getCurrentConnection() != null) {
-            devicenameTv.setText(serviceState.getCurrentConnection().getName());
-            deviceaddrTv.setText(serviceState.getCurrentConnection().getAddress());
+            devicenameTv.setText(serviceState.getCurrentConnection().getDevice().getName());
+            deviceaddrTv.setText(serviceState.getCurrentConnection().getDevice().getAddress());
         }
 
     }

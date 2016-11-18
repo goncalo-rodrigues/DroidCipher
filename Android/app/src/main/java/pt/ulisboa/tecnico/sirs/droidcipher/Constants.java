@@ -19,6 +19,7 @@ public final class Constants {
     public static final String MESSAGE_TYPE = "extras:message_type";
     public static final String MESSAGE_TYPE_NEWCONNECTION = "message_type:new_connection";
     public static final String MESSAGE_TYPE_FILEKEY = "message_type:file_key";
+    public static final String HMAC_ALGORITHM = "HmacSHA512";
 
     public static final String SERVICE_COMMAND_EXTRA = "extras:service_command";
 

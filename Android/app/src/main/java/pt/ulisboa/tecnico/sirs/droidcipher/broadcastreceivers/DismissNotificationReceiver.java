@@ -25,7 +25,7 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
         // if you want cancel notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(notificationId);
-        Log.d(LOG_TAG, "Rejecting new connection");
+        Log.i(LOG_TAG, "Rejecting new connection");
 
 
         if (context instanceof IAcceptConnectionCallback) {

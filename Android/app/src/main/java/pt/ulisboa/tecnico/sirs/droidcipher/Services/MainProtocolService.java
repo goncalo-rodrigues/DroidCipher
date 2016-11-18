@@ -19,10 +19,12 @@ import android.util.Log;
 
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
+import java.security.PublicKey;
 import java.util.Arrays;
 
 import javax.crypto.spec.SecretKeySpec;
 
+import pt.ulisboa.tecnico.sirs.droidcipher.ClientThread;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
@@ -41,7 +43,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 
 public class MainProtocolService extends Service implements IAcceptConnectionCallback {
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
-    public static final String STATE_CHANGE_ACTION = "action:service_state_change";
+    public static final String STATE_CHANGE_ACTION = "pt.ulisboa.tecnico.sirs.droidcipher.services.MainProtocolService.STATE_CHANGED";
     public static final String EXTRA_STATE = "extra:service_state";
 
     private final IBinder mBinder = new LocalBinder();
@@ -116,6 +118,16 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     }
 
+    public void onQRCode(byte[] integrityIV, SecretKeySpec integrityKey, String macAddress) {
+        PublicKey publicKey = KeyGenHelper.getPublicKey(this);
+        byte[] pubKeyString = KeyGenHelper.printKey(publicKey).getBytes();
+        byte[] hmac = CipherHelper.HMac(pubKeyString, integrityKey);
+
+        ClientThread client = new ClientThread(this, macAddress, "todo", pubKeyString, hmac);
+
+        client.start();
+    }
+
     public byte[] onNewConnection(byte[] message, BluetoothDevice device) {
         accepted = false;
         if (privateKey == null) {
@@ -142,7 +154,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
         state.setWaitingUser(true);
         broadcastState();
-        NotificationsHelper.startNewConnectionNotification(this, device);
+        NotificationsHelper.startNewConnectionNotification(this, new Connection(device,
+                Base64.encodeToString(nonce, Base64.DEFAULT)));
         synchronized(this) {
             try {
                 // Calling wait() will block this thread until another thread
@@ -154,7 +167,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         }
         if (accepted) {
             setForeground();
-            state.setCurrentConnection(device);
+            state.setCurrentConnection(new Connection(device, Base64.encodeToString(nonce, Base64.DEFAULT)));
             state.setWaitingUser(false);
             state.setConnected(true);
             broadcastState();
@@ -182,7 +195,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             Log.d(LOG_TAG, "IV:" + Base64.encodeToString(commIV, Base64.DEFAULT));
             boolean accepted = commKey != null && commIV != null && privateKey != null;
             if (!accepted) {
-                Log.d(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
+                Log.e(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
                 return null;
             }
             try {
@@ -232,7 +245,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public void OnRejectConnection() {
         newCommKey = null;
         newCommIV = null;
-        Log.d(LOG_TAG, "Connection rejected by user.");
+        Log.i(LOG_TAG, "Connection rejected by user.");
         synchronized(this) {
             accepted = false;
             this.notify();
@@ -261,10 +274,16 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         PendingIntent pendingIntent=PendingIntent.getActivity(this, 0,
                 notificationIntent, PendingIntent.FLAG_ONE_SHOT);
 
+        Intent closeIntent = new Intent(this, MainProtocolService.class);
+        closeIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.RESET_CONN_COMMAND);
+        PendingIntent pendingCloseIntent=PendingIntent.getService(this, 0,
+                closeIntent, PendingIntent.FLAG_ONE_SHOT);
+
         Notification notification=new NotificationCompat.Builder(this)
                 .setSmallIcon(R.mipmap.ic_launcher)
                 .setContentText(getString(R.string.service_short))
                 .setContentTitle(getString(R.string.service_title))
+                .addAction(R.drawable.ic_close_black_24dp, getString(R.string.cancel_connection), pendingCloseIntent)
                 .setContentIntent(pendingIntent).build();
 
         startForeground(1, notification);

@@ -8,6 +8,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
@@ -20,7 +21,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.R;
 
 public class NotificationsHelper {
 
-    public static int  startNewConnectionNotification(Context context, BluetoothDevice device){
+    public static int  startNewConnectionNotification(Context context, Connection connection){
         int notificationId = (int) (System.currentTimeMillis() % Integer.MAX_VALUE);
 
         String ns = Context.NOTIFICATION_SERVICE;
@@ -30,21 +31,21 @@ public class NotificationsHelper {
         //the intent that is started when the notification is clicked
         Intent notificationIntent = new Intent(context, NewConnectionActivity.class);
         notificationIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
-        notificationIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, device);
-        PendingIntent pendingNotificationIntent = PendingIntent.getActivity(context, 0,
+        notificationIntent.putExtra(BluetoothDevice.EXTRA_DEVICE, connection);
+        PendingIntent pendingNotificationIntent = PendingIntent.getActivity(context, notificationId,
                 notificationIntent, 0);
 
 
         // intent that is called when "accept" is clicked
         Intent acceptIntent = new Intent(context, AcceptConnectionReceiver.class);
         acceptIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
-        PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(context, 0,
+        PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(context, notificationId,
                 acceptIntent, 0);
 
         // intent that is called when "close" is clicked
         Intent closeIntent = new Intent(context, DismissNotificationReceiver.class);
         closeIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
-        PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(context, 0,
+        PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(context, notificationId,
                 closeIntent, 0);
 
 

@@ -19,7 +19,7 @@ public class BluetoothStateChangedReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
-        Log.d(LOG_TAG, "Received bluetooth state change");
+        Log.i(LOG_TAG, "Received bluetooth state change");
         if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(action)) {
             int state = intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1);
             Intent serviceIntent = new Intent(context, MainProtocolService.class);
