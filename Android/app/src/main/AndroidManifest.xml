@@ -3,6 +3,8 @@
     package="pt.ulisboa.tecnico.sirs.droidcipher">
 
     <uses-permission android:name="android.permission.BLUETOOTH" />
+    <uses-permission android:name="android.permission.CAMERA" />
+    <meta-data android:name="com.google.android.gms.vision.DEPENDENCIES" android:value="barcode"/>
 
     <application
         android:allowBackup="true"
@@ -13,7 +15,6 @@
         <activity android:name=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -22,13 +23,19 @@
         <receiver android:name=".broadcastreceivers.AcceptConnectionReceiver" />
         <receiver android:name=".broadcastreceivers.BluetoothStateChangedReceiver">
             <intent-filter>
-                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED"/>
+                <action android:name="android.bluetooth.adapter.action.STATE_CHANGED" />
             </intent-filter>
         </receiver>
 
-        <activity android:name=".NewConnectionActivity"></activity>
+        <activity android:name=".NewConnectionActivity" />
 
-        <service android:name=".Services.MainProtocolService" android:exported="false"/>
+        <service
+            android:name=".Services.MainProtocolService"
+            android:exported="false" />
+
+        <activity android:name=".QRCodeReaderActivity">
+
+        </activity>
     </application>
 
 </manifest>

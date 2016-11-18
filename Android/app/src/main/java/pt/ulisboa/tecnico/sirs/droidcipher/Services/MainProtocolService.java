@@ -97,6 +97,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             case Constants.RESET_CONN_COMMAND:
                 OnStopConnection();
                 return super.onStartCommand(intent, flags, startId);
+            case Constants.QR_CODE:
+                byte[] qrcodeInfo = intent.getByteArrayExtra(Constants.SERVICE_QRCODEINFO_EXTRA);
+                onQRCode(qrcodeInfo);
+                break;
             case Constants.STOP_COMMAND:
                 stopSelf();
                 return START_NOT_STICKY;
@@ -118,12 +122,21 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     }
 
-    public void onQRCode(byte[] integrityIV, SecretKeySpec integrityKey, String macAddress) {
-        PublicKey publicKey = KeyGenHelper.getPublicKey(this);
-        byte[] pubKeyString = KeyGenHelper.printKey(publicKey).getBytes();
-        byte[] hmac = CipherHelper.HMac(pubKeyString, integrityKey);
+    public void onQRCode(byte[] qrcodeinfo) {
+        int cursor = 0;
+        byte[] macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
+        byte[] pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
+        byte[] integrityIv = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 16)); //16 bytes
+        byte[] integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
 
-        ClientThread client = new ClientThread(this, macAddress, "todo", pubKeyString, hmac);
+        String macAddress = new String(macAddressBytes);
+        String pcUUID = new String(pcUUIDBytes);
+        SecretKeySpec integrityKey = new SecretKeySpec(integrityKeyBytes, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+        PublicKey publicKey = KeyGenHelper.getPublicKey(this);
+        byte[] pubKey = KeyGenHelper.printKey(publicKey).getBytes();
+        byte[] hmac = CipherHelper.HMac(pubKey, integrityKey);
+
+        ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey, hmac);
 
         client.start();
     }

@@ -22,11 +22,12 @@ public final class Constants {
     public static final String HMAC_ALGORITHM = "HmacSHA512";
 
     public static final String SERVICE_COMMAND_EXTRA = "extras:service_command";
+    public static final String SERVICE_QRCODEINFO_EXTRA = "extras:service_qrcodeinfo";
+
 
     public static final int ACCEPT_COMMAND = 1;
     public static final int REJECT_COMMAND = 2;
     public static final int RESET_CONN_COMMAND = 3;
     public static final int STOP_COMMAND = 4;
-
-
+    public static final int QR_CODE = 5;
 }
