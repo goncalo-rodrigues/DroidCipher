@@ -13,6 +13,7 @@ public class ServiceState implements Parcelable {
     private boolean isWaitingUser;
     private boolean isConnected;
     private Connection currentConnection;
+    private Connection incomingConnection;
 
     public boolean isOn() {
         return isOn;
@@ -30,6 +31,14 @@ public class ServiceState implements Parcelable {
         isWaitingUser = waitingUser;
     }
 
+    public boolean isConnected() {
+        return isConnected;
+    }
+
+    public void setConnected(boolean connected) {
+        isConnected = connected;
+    }
+
     public Connection getCurrentConnection() {
         return currentConnection;
     }
@@ -38,12 +47,12 @@ public class ServiceState implements Parcelable {
         this.currentConnection = currentConnection;
     }
 
-    public boolean isConnected() {
-        return isConnected;
+    public Connection getIncomingConnection() {
+        return incomingConnection;
     }
 
-    public void setConnected(boolean connected) {
-        isConnected = connected;
+    public void setIncomingConnection(Connection incomingConnection) {
+        this.incomingConnection = incomingConnection;
     }
 
     @Override
@@ -57,6 +66,7 @@ public class ServiceState implements Parcelable {
         dest.writeByte(this.isWaitingUser ? (byte) 1 : (byte) 0);
         dest.writeByte(this.isConnected ? (byte) 1 : (byte) 0);
         dest.writeParcelable(this.currentConnection, flags);
+        dest.writeParcelable(this.incomingConnection, flags);
     }
 
     public ServiceState() {
@@ -67,9 +77,10 @@ public class ServiceState implements Parcelable {
         this.isWaitingUser = in.readByte() != 0;
         this.isConnected = in.readByte() != 0;
         this.currentConnection = in.readParcelable(Connection.class.getClassLoader());
+        this.incomingConnection = in.readParcelable(Connection.class.getClassLoader());
     }
 
-    public static final Parcelable.Creator<ServiceState> CREATOR = new Parcelable.Creator<ServiceState>() {
+    public static final Creator<ServiceState> CREATOR = new Creator<ServiceState>() {
         @Override
         public ServiceState createFromParcel(Parcel source) {
             return new ServiceState(source);

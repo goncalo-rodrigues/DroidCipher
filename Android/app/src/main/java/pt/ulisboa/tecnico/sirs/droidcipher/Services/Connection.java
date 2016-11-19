@@ -21,7 +21,7 @@ public class Connection implements Parcelable {
     }
 
     public String getConnectionId() {
-        return connectionId;
+        return connectionId.replace("\n", "");
     }
 
     public void setConnectionId(String connectionId) {

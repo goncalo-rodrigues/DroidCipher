@@ -10,4 +10,9 @@
     <string name="service_short">Droidcipher is communicating with your PC</string>
     <string name="service_title">Connected</string>
     <string name="cancel_connection">Cancel connection</string>
+    <string name="new_connection_warning">Attention! Do not accept this connection unless you explicitly started it. Doing otherwise can be dangerous and compromise your files.</string>
+    <string name="service_running">Running</string>
+    <string name="service_stopped">Stopped</string>
+    <string name="button_stop">Stop</string>
+    <string name="button_start">Start</string>
 </resources>

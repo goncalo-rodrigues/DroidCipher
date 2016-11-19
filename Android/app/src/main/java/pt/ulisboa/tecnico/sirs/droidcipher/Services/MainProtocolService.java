@@ -44,7 +44,11 @@ import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 public class MainProtocolService extends Service implements IAcceptConnectionCallback {
     private static final String LOG_TAG = MainProtocolService.class.getSimpleName();
     public static final String STATE_CHANGE_ACTION = "pt.ulisboa.tecnico.sirs.droidcipher.services.MainProtocolService.STATE_CHANGED";
+    public static final String NEW_EVENT_ACTION = "pt.ulisboa.tecnico.sirs.droidcipher.services.MainProtocolService.NEW_EVENT";
+
     public static final String EXTRA_STATE = "extra:service_state";
+    public static final String EXTRA_EVENT = "extra:event";
+    public static final String EXTRA_CONNECTION = "extra:current_connection";
 
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
@@ -111,8 +115,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             if (serverThread == null) {
                 serverThread = new ServerThread(this);
                 serverThread.start();
-            }
+                logEvent(Events.SERVICE_STARTED, null);
 
+            }
             state.setOn(true);
             broadcastState();
             return super.onStartCommand(intent, flags, startId);
@@ -126,7 +131,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         int cursor = 0;
         byte[] macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
         byte[] pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
-        byte[] integrityIv = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 16)); //16 bytes
         byte[] integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
 
         String macAddress = new String(macAddressBytes);
@@ -139,6 +143,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey, hmac);
 
         client.start();
+
+        logEvent(Events.NEW_DEVICE_ADDED, null);
     }
 
     public byte[] onNewConnection(byte[] message, BluetoothDevice device) {
@@ -164,11 +170,14 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         } else {
             Log.e(LOG_TAG, "Malformed communication key");
         }
+        Connection connection = new Connection(device,
+                Base64.encodeToString(nonce, Base64.DEFAULT));
 
+        logEvent(Events.NEW_CONNECTION_REQUEST, connection);
         state.setWaitingUser(true);
+        state.setIncomingConnection(connection);
         broadcastState();
-        NotificationsHelper.startNewConnectionNotification(this, new Connection(device,
-                Base64.encodeToString(nonce, Base64.DEFAULT)));
+        NotificationsHelper.startNewConnectionNotification(this, connection);
         synchronized(this) {
             try {
                 // Calling wait() will block this thread until another thread
@@ -178,16 +187,22 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 // Happens if someone interrupts your thread.
             }
         }
+        state.setIncomingConnection(null);
+        state.setWaitingUser(false);
         if (accepted) {
+            if (state.getCurrentConnection() != null) {
+                logEvent(Events.CONNECTION_LOST, state.getCurrentConnection());
+            }
+            logEvent(Events.ACCEPTED_CONNECTION, connection);
             setForeground();
-            state.setCurrentConnection(new Connection(device, Base64.encodeToString(nonce, Base64.DEFAULT)));
-            state.setWaitingUser(false);
+            state.setCurrentConnection(connection);
             state.setConnected(true);
             broadcastState();
+
             return nonce;
         } else {
-            state.setWaitingUser(false);
             broadcastState();
+            logEvent(Events.REJECTED_CONNECTION, connection);
             return null;
         }
     }
@@ -215,7 +230,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
                 byte[] fileKey = CipherHelper.RSADecrypt(privateKey, decryptedMessage);
                 byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, fileKey);
-
+                logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
                 return encryptedFileKey;
             } catch (InvalidKeyException e) {
                 e.printStackTrace();
@@ -234,11 +249,13 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
     @Override
     public void onDestroy() {
-        OnStopConnection();
+
         state.setOn(false);
+        OnStopConnection();
         if (serverThread != null)
             serverThread.cancel();
-        broadcastState();
+        serverThread = null;
+        logEvent(Events.SERVICE_STOPPED, null);
     }
 
     @Override
@@ -279,6 +296,13 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public void broadcastState() {
         Intent intent = new Intent(STATE_CHANGE_ACTION);
         intent.putExtra(EXTRA_STATE, state);
+        sendBroadcast(intent);
+    }
+
+    public void logEvent(int eventId, Connection currentConnection) {
+        Intent intent = new Intent(NEW_EVENT_ACTION);
+        intent.putExtra(EXTRA_EVENT, eventId);
+        intent.putExtra(EXTRA_CONNECTION, currentConnection);
         sendBroadcast(intent);
     }
 

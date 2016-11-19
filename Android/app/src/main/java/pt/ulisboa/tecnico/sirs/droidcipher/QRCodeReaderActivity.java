@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
+import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.support.annotation.NonNull;
@@ -22,7 +23,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
 
-public class QRCodeReaderActivity extends AppCompatActivity {
+public class QRCodeReaderActivity extends Activity {
 
     private static final String LOG_TAG = QRCodeReaderActivity.class.getSimpleName();
     private SurfaceView cameraView;
@@ -30,7 +31,7 @@ public class QRCodeReaderActivity extends AppCompatActivity {
     private CameraSource cameraSource;
     private BarcodeDetector detector;
     private boolean cameraStarted = false;
-    private static final String RESULT = "result";
+    public static final String RESULT = "result";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {

@@ -1,5 +1,6 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
+import android.app.Activity;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
 import android.support.v7.app.AppCompatActivity;
@@ -13,7 +14,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 
-public class NewConnectionActivity extends AppCompatActivity {
+public class NewConnectionActivity extends Activity {
 
     private TextView nameTV;
     private TextView addressTV;

@@ -1,18 +1,15 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
-import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
+import android.app.Activity;
 import android.content.BroadcastReceiver;
-import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.ServiceConnection;
 import android.content.pm.PackageManager;
-import android.inputmethodservice.Keyboard;
 import android.os.Bundle;
-import android.os.IBinder;
+import android.os.Handler;
+import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -20,58 +17,88 @@ import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CompoundButton;
 import android.widget.EditText;
+import android.widget.ListView;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import org.w3c.dom.Text;
 
-import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.CipherHelper;
+import java.util.ArrayList;
+import java.util.Date;
+
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
-import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.NotificationsHelper;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Events;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.ServiceState;
+import pt.ulisboa.tecnico.sirs.droidcipher.adapters.LogListAdapter;
+import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends Activity {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
+    public static final int SCANQR_REQUEST_CODE = 1;
     public ServiceState serviceState = new ServiceState();
     private boolean mIsReceiverRegistered;
     private ServiceStateReceiver mReceiver;
 
-    private TextView runningTv;
-    private TextView connectedTv;
-    private TextView waitingTv;
-    private TextView devicenameTv;
-    private TextView deviceaddrTv;
-    private Button resetConnectionBt;
-    private Button toggleServiceBt;
+    private ListView logList;
+    private TextView statusTv;
+    private TextView deviceInfoTv;
+    private Button stopStartBt;
+    private Button addDeviceBt;
+    private LogListAdapter logAdapter;
+    private ArrayList<Event> events = new ArrayList<>();
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        switch(requestCode) {
+            case SCANQR_REQUEST_CODE:
+                switch(resultCode) {
+                    case RESULT_OK:
+                        String rawData = data.getStringExtra(QRCodeReaderActivity.RESULT);
+                        Intent serviceIntent = new Intent(this, MainProtocolService.class);
+                        serviceIntent.putExtra(Constants.SERVICE_QRCODEINFO_EXTRA, rawData.getBytes());
+                        startService(serviceIntent);
+                        Log.d(LOG_TAG, "QR: " + rawData);
+                        break;
+                    case RESULT_CANCELED:
+                        Toast.makeText(this, "Operation cancelled by user", Toast.LENGTH_SHORT).show();
+                        break;
+                }
+                break;
+        }
+        super.onActivityResult(requestCode, resultCode, data);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        runningTv = (TextView) findViewById(R.id.main_service_running_tv);
-        connectedTv = (TextView) findViewById(R.id.main_connected_tv);
-        waitingTv = (TextView) findViewById(R.id.main_waiting_connection_tv);
-        devicenameTv = (TextView) findViewById(R.id.main_device_name_tv);
-        deviceaddrTv = (TextView) findViewById(R.id.main_device_addr_tv);
-        resetConnectionBt = (Button) findViewById(R.id.main_reset_connection);
-        toggleServiceBt = (Button) findViewById(R.id.main_toggle_service);
-
+        logList = (ListView) findViewById(R.id.main_log_lv);
+        logList.setDivider(null);
+        statusTv = (TextView) findViewById(R.id.main_service_status);
+        deviceInfoTv = (TextView) findViewById(R.id.main_device_name);
+        stopStartBt = (Button) findViewById(R.id.main_stopstart_bt);
+        addDeviceBt =(Button) findViewById(R.id.main_add_device_bt);
+        logAdapter = new LogListAdapter(this, events);
+        logList.setAdapter(logAdapter);
         // temporary
-        ((EditText) findViewById(R.id.main_pubkey_tv)).setText(KeyGenHelper.printKey(KeyGenHelper.getPublicKey(this)));
+        //((EditText) findViewById(R.id.main_pubkey_tv)).setText(KeyGenHelper.printKey(KeyGenHelper.getPublicKey(this)));
 
-        resetConnectionBt.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, MainProtocolService.class);
-                intent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.RESET_CONN_COMMAND);
-                startService(intent);
-            }
-        });
-
-        toggleServiceBt.setOnClickListener(new View.OnClickListener() {
+//        resetConnectionBt.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                Intent intent = new Intent(MainActivity.this, MainProtocolService.class);
+//                intent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.RESET_CONN_COMMAND);
+//                startService(intent);
+//            }
+//        });
+//
+        stopStartBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 Intent intent = new Intent(MainActivity.this, MainProtocolService.class);
@@ -79,6 +106,14 @@ public class MainActivity extends AppCompatActivity {
                     intent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.STOP_COMMAND);
                 }
                 startService(intent);
+            }
+        });
+
+        addDeviceBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent intent = new Intent(MainActivity.this, QRCodeReaderActivity.class);
+                startActivityForResult(intent, SCANQR_REQUEST_CODE);
             }
         });
         serviceState.setOn(false);
@@ -116,7 +151,7 @@ public class MainActivity extends AppCompatActivity {
 
                 } else {
 
-                    Toast.makeText(this, "Bluetooth is needed!", Toast.LENGTH_LONG);
+                    Toast.makeText(this, "Bluetooth is needed!", Toast.LENGTH_LONG).show();
                     finish();
                 }
                 return;
@@ -133,7 +168,10 @@ public class MainActivity extends AppCompatActivity {
         if (!mIsReceiverRegistered) {
             if (mReceiver == null)
                 mReceiver = new ServiceStateReceiver();
-            registerReceiver(mReceiver, new IntentFilter(MainProtocolService.STATE_CHANGE_ACTION));
+            IntentFilter stateChanged = new IntentFilter(MainProtocolService.STATE_CHANGE_ACTION);
+            IntentFilter eventLogger = new IntentFilter(MainProtocolService.NEW_EVENT_ACTION);
+            registerReceiver(mReceiver, stateChanged);
+            registerReceiver(mReceiver, eventLogger);
             mIsReceiverRegistered = true;
         }
         init();
@@ -153,43 +191,98 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateUI() {
-        connectedTv.setText("-");
-        deviceaddrTv.setText("-");
-        devicenameTv.setText("-");
-        waitingTv.setText("-");
-        if (!serviceState.isOn()) {
-            runningTv.setText("No");
-            toggleServiceBt.setText("Start Service");
-            return;
-        }
-        toggleServiceBt.setText("Stop Service");
-        runningTv.setText("Yes");
-        if (serviceState.isWaitingUser()) {
-            waitingTv.setText("Yes");
+
+        if (serviceState.isOn()) {
+            statusTv.setText(getString(R.string.service_running));
+            stopStartBt.setText(R.string.button_stop);
         } else {
-            waitingTv.setText("No");
-        }
-        if (!serviceState.isConnected()) {
-            connectedTv.setText("No");
-            return;
-        }
-        connectedTv.setText("Yes");
-        if (serviceState.getCurrentConnection() != null) {
-            devicenameTv.setText(serviceState.getCurrentConnection().getDevice().getName());
-            deviceaddrTv.setText(serviceState.getCurrentConnection().getDevice().getAddress());
+            statusTv.setText(getString(R.string.service_stopped));
+            stopStartBt.setText(R.string.button_start);
         }
 
+        if (serviceState.isConnected() && serviceState.getCurrentConnection() != null) {
+            deviceInfoTv.setText(serviceState.getCurrentConnection().getDevice().getName());
+        } else {
+            deviceInfoTv.setText("-");
+        }
+
+    }
+
+    public void newEvent(int eventID, Connection conn) {
+        Event newEvent = new Event();
+        String description = "";
+        int icon = -1;
+        switch(eventID) {
+            case Events.SERVICE_STARTED:
+                description = "Service started running";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.SERVICE_STOPPED:
+                description = "Service stopped running";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.ACCEPTED_CONNECTION:
+                description = "Connection established with " + conn.getDevice().getName() +
+                        " (ID:" + conn.getConnectionId() +")";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.NEW_CONNECTION_REQUEST:
+                description = "New connection request from " + conn.getDevice().getName() +
+                        " (ID:" + conn.getConnectionId() +")";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.FILE_DECRYPT_REQUEST:
+                description = "File decryption request from " + conn.getDevice().getName();
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.CONNECTION_LOST:
+                description = "Connection with " + conn.getDevice().getName() +
+                        " (ID:" + conn.getConnectionId() +") was dropped";
+                icon = R.drawable.ic_arrows_circle_lightning;
+                break;
+            case Events.NEW_DEVICE_ADDED:
+                description = "QRCode was read and a new device has been added";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+            case Events.REJECTED_CONNECTION:
+                description = "Connection rejected with " + conn.getDevice().getName() +
+                        " (ID:" + conn.getConnectionId() +")";
+                icon = R.drawable.ic_arrows_deny;
+                break;
+            default:
+                description = "Unknown event";
+                icon = R.drawable.ic_arrows_circle_check;
+                break;
+        }
+        newEvent.setDescription(description);
+
+        newEvent.setIcon(icon);
+        events.add(newEvent);
+        logAdapter.notifyDataSetChanged();
     }
 
     public class ServiceStateReceiver extends BroadcastReceiver {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            ServiceState state = intent.getParcelableExtra(MainProtocolService.EXTRA_STATE);
-            if (state != null) {
-                serviceState = state;
-                updateUI();
+            if (intent.getAction().equals(MainProtocolService.STATE_CHANGE_ACTION)) {
+                ServiceState state = intent.getParcelableExtra(MainProtocolService.EXTRA_STATE);
+                if (state != null) {
+                    serviceState = state;
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            updateUI();
+                        }
+                    });
+                }
+            } else if (intent.getAction().equals(MainProtocolService.NEW_EVENT_ACTION)) {
+                int eventId = intent.getIntExtra(MainProtocolService.EXTRA_EVENT, -1);
+                Connection conn = intent.getParcelableExtra(MainProtocolService.EXTRA_CONNECTION);
+                newEvent(eventId, conn);
             }
+
+
         }
 
     }
