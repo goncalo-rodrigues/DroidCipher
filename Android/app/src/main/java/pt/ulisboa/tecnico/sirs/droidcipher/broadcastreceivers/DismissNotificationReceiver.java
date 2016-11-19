@@ -8,6 +8,7 @@ import android.util.Log;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 
 /**
@@ -21,6 +22,8 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
     public void onReceive(Context context, Intent intent) {
 
         int notificationId = intent.getIntExtra(Constants.NOTIFICATION_ID_EXTRA, 0);
+        Connection rejectedConnection = intent.getParcelableExtra(Constants.CONNECTION_EXTRA);
+
 
         // if you want cancel notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
@@ -29,10 +32,11 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
 
 
         if (context instanceof IAcceptConnectionCallback) {
-            ((IAcceptConnectionCallback) context).OnRejectConnection();
+            ((IAcceptConnectionCallback) context).OnRejectConnection(rejectedConnection);
         } else {
             Intent serviceIntent = new Intent(context, MainProtocolService.class);
             serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.REJECT_COMMAND);
+            serviceIntent.putExtra(MainProtocolService.EXTRA_CONNECTION, rejectedConnection);
             context.startService(serviceIntent);
         }
     }

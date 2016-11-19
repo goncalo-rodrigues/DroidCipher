@@ -9,9 +9,10 @@
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:background="@color/colorPrimary"
-        android:orientation="vertical">
+        android:orientation="vertical"
+        android:layout_weight="9">
 
         <ImageView
             android:layout_width="wrap_content"
@@ -34,15 +35,56 @@
             android:layout_height="match_parent"
             android:padding="16dp"
             android:layout_marginLeft="16dp"
-            android:layout_marginRight="16dp">
+            android:layout_marginRight="16dp"
+            android:layout_marginBottom="16dp">
 
             <SurfaceView
                 android:id="@+id/cameraView"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent" />
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_camera_corner"
+                android:layout_marginTop="@dimen/camera_corner_margin"
+                android:layout_marginStart="@dimen/camera_corner_margin"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_camera_corner"
+                android:layout_marginTop="@dimen/camera_corner_margin"
+                android:rotation="90"
+                android:layout_gravity="end"
+                android:layout_marginEnd="@dimen/camera_corner_margin"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_camera_corner"
+                android:layout_marginBottom="@dimen/camera_corner_margin"
+                android:rotation="180"
+                android:layout_gravity="bottom|end"
+                android:layout_marginEnd="@dimen/camera_corner_margin"/>
+            <ImageView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/ic_camera_corner"
+                android:layout_marginBottom="@dimen/camera_corner_margin"
+                android:rotation="270"
+                android:layout_gravity="bottom|start"
+                android:layout_marginStart="@dimen/camera_corner_margin"/>
         </pt.ulisboa.tecnico.sirs.droidcipher.FixedAspectRatioFrameLayout>
 
     </LinearLayout>
+    <Button android:layout_width="128dp"
+        android:layout_height="48dp"
+        android:background="@drawable/round_rectangle"
+        android:layout_marginTop="-24dp"
+        android:layout_gravity="center_horizontal"
+        android:text="Close"
+        android:textColor="@color/black"
+        style="@style/ButtonStyle"
+        android:id="@+id/new_connection_close_bt"
+        />
     <TextView
         android:layout_width="match_parent"
         android:layout_height="0dp"

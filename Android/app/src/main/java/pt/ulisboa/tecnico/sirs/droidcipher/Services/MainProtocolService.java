@@ -95,10 +95,12 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             int command = intent.getIntExtra(Constants.SERVICE_COMMAND_EXTRA, -1);
             switch (command) {
                 case Constants.ACCEPT_COMMAND:
-                    OnAcceptConnection();
+                    Connection toBeAccepted = intent.getParcelableExtra(EXTRA_CONNECTION);
+                    OnAcceptConnection(toBeAccepted);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.REJECT_COMMAND:
-                    OnRejectConnection();
+                    Connection toBeRejected = intent.getParcelableExtra(EXTRA_CONNECTION);
+                    OnRejectConnection(toBeRejected);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.RESET_CONN_COMMAND:
                     OnStopConnection();
@@ -186,28 +188,33 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         byte[] nonce = Arrays.copyOfRange(decrypted, 0, 4);
         byte[] decryptedIV = Arrays.copyOfRange(decrypted, 4, 20);
         byte[] decryptedKey = Arrays.copyOfRange(decrypted, 20, decrypted.length);
-
-        if (Asserter.AssertAESKey(decryptedKey)) {
-            newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
-            newCommIV = decryptedIV;
-        } else {
-            Log.e(LOG_TAG, "Malformed communication key");
-        }
         Connection connection = new Connection(device,
                 Base64.encodeToString(nonce, Base64.DEFAULT));
 
+        if (!Asserter.AssertAESKey(decryptedKey)) {
+            logEvent(Events.FAILED_CONNECTION_REQUEST, connection);
+            Log.e(LOG_TAG, "Malformed communication key");
+            return null;
+        }
+
         logEvent(Events.NEW_CONNECTION_REQUEST, connection);
-        state.setWaitingUser(true);
-        state.setIncomingConnection(connection);
-        broadcastState();
-        NotificationsHelper.startNewConnectionNotification(this, connection);
+
+
         synchronized(this) {
             try {
-                // Calling wait() will block this thread until another thread
-                // calls notify() on the object.
+                state.setWaitingUser(true);
+                state.setIncomingConnection(connection);
+                broadcastState();
+
+                newCommKey = new SecretKeySpec(decryptedKey, Constants.SYMMETRIC_CIPHER_ALGORITHM);
+                newCommIV = decryptedIV;
+
+                NotificationsHelper.startNewConnectionNotification(this, connection);
                 this.wait();
             } catch (InterruptedException e) {
-                // Happens if someone interrupts your thread.
+                Log.e(LOG_TAG, "Service was closed before getting an answer from an user");
+                // Unable to get an answer
+                return null;
             }
         }
         state.setIncomingConnection(null);
@@ -287,28 +294,37 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
 
     @Override
-    public void OnAcceptConnection() {
-        if (newCommKey != null && newCommIV != null) {
-            KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
-            commKey = newCommKey;
-            commIV = newCommIV;
-            newCommKey = null;
-            newCommIV = null;
-            synchronized(this) {
+    public void OnAcceptConnection(Connection toBeAccepted) {
+        synchronized (this) {
+            String commId = toBeAccepted.getConnectionId();
+            if (newCommKey != null && newCommIV != null &&
+                    state.getIncomingConnection().getConnectionId().equals(commId)) {
+                KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
+                commKey = newCommKey;
+                commIV = newCommIV;
+                newCommKey = null;
+                newCommIV = null;
                 accepted = true;
                 this.notify();
+            } else {
+                Log.d(LOG_TAG, "Accepted old connection. Ignoring.");
             }
         }
     }
 
     @Override
-    public void OnRejectConnection() {
-        newCommKey = null;
-        newCommIV = null;
-        Log.i(LOG_TAG, "Connection rejected by user.");
-        synchronized(this) {
-            accepted = false;
-            this.notify();
+    public void OnRejectConnection(Connection toBeRejected) {
+        synchronized (this) {
+            String commId = toBeRejected.getConnectionId();
+            if (newCommKey != null && newCommIV != null &&
+                    state.getIncomingConnection().getConnectionId().equals(commId)) {
+                newCommKey = null;
+                newCommIV = null;
+                accepted = false;
+                this.notify();
+            } else {
+                Log.d(LOG_TAG, "Accepted old connection. Ignoring.");
+            }
         }
     }
 

@@ -9,6 +9,7 @@ import android.content.Intent;
 import android.support.v4.app.NotificationCompat;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
@@ -39,12 +40,14 @@ public class NotificationsHelper {
         // intent that is called when "accept" is clicked
         Intent acceptIntent = new Intent(context, AcceptConnectionReceiver.class);
         acceptIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
+        acceptIntent.putExtra(Constants.CONNECTION_EXTRA, connection);
         PendingIntent pendingAcceptIntent = PendingIntent.getBroadcast(context, notificationId,
                 acceptIntent, 0);
 
         // intent that is called when "close" is clicked
         Intent closeIntent = new Intent(context, DismissNotificationReceiver.class);
         closeIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
+        closeIntent.putExtra(Constants.CONNECTION_EXTRA, connection);
         PendingIntent pendingCloseIntent = PendingIntent.getBroadcast(context, notificationId,
                 closeIntent, 0);
 

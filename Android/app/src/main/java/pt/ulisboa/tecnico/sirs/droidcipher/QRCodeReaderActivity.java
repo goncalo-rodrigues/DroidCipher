@@ -14,6 +14,8 @@ import android.util.Log;
 import android.util.SparseArray;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -35,14 +37,14 @@ public class QRCodeReaderActivity extends AppCompatActivity {
     private boolean cameraStarted = false;
     public static final String RESULT = "result";
 
+    private Button closeBt;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qrcode_reader);
         cameraView = (SurfaceView) findViewById(R.id.cameraView);
-        detector = new BarcodeDetector.Builder(this).setBarcodeFormats(Barcode.QR_CODE).build();
-        cameraSource = new CameraSource.Builder(this, detector)
-                .build();
+        closeBt = (Button) findViewById(R.id.new_connection_close_bt);
 
 
         if (ContextCompat.checkSelfPermission(this,
@@ -72,7 +74,14 @@ public class QRCodeReaderActivity extends AppCompatActivity {
             });
 
         }
-
+        closeBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent data = new Intent();
+                setResult(RESULT_CANCELED, data);
+                finish();
+            }
+        });
 
     }
 
@@ -93,7 +102,38 @@ public class QRCodeReaderActivity extends AppCompatActivity {
         }
     }
 
+    public Camera.Size getBestSize() {
+        try {
+            Camera.Size bestSize = null;
+            double bestRatio = 10;
+            List<Camera.Size> result = Camera.open().getParameters().getSupportedPreviewSizes();
+            for (Camera.Size size : result) {
+                double ratio = Math.max((double)size.height / size.width, (double)size.width/size.height);
+                if (ratio < bestRatio) {
+                    bestRatio = ratio;
+                    bestSize = size;
+                }
+            }
+            return bestSize;
+        } catch (Exception e) {
+            return null;
+        }
+
+    }
+
     public void init() {
+        detector = new BarcodeDetector.Builder(this).setBarcodeFormats(Barcode.QR_CODE).build();
+        Camera.Size size = getBestSize();
+        int width = 480;
+        int height = 480;
+        if (size != null) {
+            width = size.width;
+            height = size.height;
+        }
+        cameraSource = new CameraSource.Builder(this, detector)
+                .setRequestedPreviewSize(width,height)
+                .build();
+
         tryStartCamera();
 
         detector.setProcessor(new Detector.Processor<Barcode>() {

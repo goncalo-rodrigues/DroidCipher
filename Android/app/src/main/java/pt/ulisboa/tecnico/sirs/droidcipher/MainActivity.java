@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
+import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -42,6 +43,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 public class MainActivity extends AppCompatActivity {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final int SCANQR_REQUEST_CODE = 1;
+    public static final int BLUETOOTH_REQUEST_CODE = 2;
     public ServiceState serviceState = new ServiceState();
     private boolean mIsReceiverRegistered;
     private ServiceStateReceiver mReceiver;
@@ -77,6 +79,17 @@ public class MainActivity extends AppCompatActivity {
                         break;
                 }
                 break;
+            case BLUETOOTH_REQUEST_CODE:
+                switch (resultCode) {
+                    case RESULT_OK:
+                        init();
+                        break;
+                    case RESULT_CANCELED:
+                        //TODO: tell user he needs bluetooth
+                        break;
+
+                }
+                break;
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -104,6 +117,13 @@ public class MainActivity extends AppCompatActivity {
                 Intent intent = new Intent(MainActivity.this, MainProtocolService.class);
                 if (serviceState.isOn()) {
                     intent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.STOP_COMMAND);
+                } else {
+                    BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                    if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+                        Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                        startActivityForResult(enableBtIntent, BLUETOOTH_REQUEST_CODE);
+                        return;
+                    }
                 }
                 startService(intent);
             }

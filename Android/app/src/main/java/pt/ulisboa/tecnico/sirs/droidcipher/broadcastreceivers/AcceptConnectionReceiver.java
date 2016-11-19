@@ -9,6 +9,7 @@ import android.util.Log;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 
 /**
@@ -21,6 +22,7 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
     @Override
     public void onReceive(Context context, Intent intent) {
         int notificationId = intent.getIntExtra(Constants.NOTIFICATION_ID_EXTRA, 0);
+        Connection acceptedConnection = intent.getParcelableExtra(Constants.CONNECTION_EXTRA);
         // if you want cancel notification
         NotificationManager manager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
         manager.cancel(notificationId);
@@ -32,10 +34,11 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
 
 
         if (context instanceof IAcceptConnectionCallback) {
-            ((IAcceptConnectionCallback) context).OnAcceptConnection();
+            ((IAcceptConnectionCallback) context).OnAcceptConnection(acceptedConnection);
         } else {
             Intent serviceIntent = new Intent(context, MainProtocolService.class);
             serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.ACCEPT_COMMAND);
+            serviceIntent.putExtra(MainProtocolService.EXTRA_CONNECTION, acceptedConnection);
             context.startService(serviceIntent);
         }
     }

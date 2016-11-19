@@ -29,9 +29,9 @@ public class NewConnectionActivity extends AppCompatActivity {
         findViews();
 
         Intent intent = getIntent();
-
+        Connection connection = null;
         if (intent != null) {
-            Connection connection = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
+            connection = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
             if (connection != null) {
                 nameTV.setText(connection.getDevice().getName());
                 addressTV.setText(connection.getDevice().getAddress());
@@ -44,11 +44,13 @@ public class NewConnectionActivity extends AppCompatActivity {
         // intent that is called when "accept" is clicked
         final Intent acceptIntent = new Intent(this, AcceptConnectionReceiver.class);
         acceptIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
+        acceptIntent.putExtra(Constants.CONNECTION_EXTRA, connection);
 
 
         // intent that is called when "close" is clicked
         final Intent closeIntent = new Intent(this, DismissNotificationReceiver.class);
         closeIntent.putExtra(Constants.NOTIFICATION_ID_EXTRA,notificationId);
+        closeIntent.putExtra(Constants.CONNECTION_EXTRA, connection);
 
         acceptButton.setOnClickListener(new View.OnClickListener() {
             @Override

@@ -13,6 +13,7 @@ public final class Constants {
     public static final String COMMUNICATION_KEY_PREF = "prefs:comm_key";
     public static final String COMMUNICATION_IV_PREF = "prefs:comm_iv";
     public static final String NOTIFICATION_ID_EXTRA = "notifications:extra:not_id";
+    public static final String CONNECTION_EXTRA = "notifications:extra:connection";
     public static final String SYMMETRIC_CIPHER_ALGORITHM = "AES/CBC/PKCS7Padding";
     public static final String ASYMMETRIC_CIPHER_ALGORITHM = "RSA/NONE/OAEPWithSHA256AndMGF1Padding";
     public static final String MAIN_PROTO_DATA = "extras:main_proto_data";
