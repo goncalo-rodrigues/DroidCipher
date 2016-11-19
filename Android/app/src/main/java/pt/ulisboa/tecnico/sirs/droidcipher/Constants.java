@@ -30,4 +30,8 @@ public final class Constants {
     public static final int RESET_CONN_COMMAND = 3;
     public static final int STOP_COMMAND = 4;
     public static final int QR_CODE = 5;
+
+    public static final int ICON_GOOD = 1;
+    public static final int ICON_DENY = 2;
+    public static final int ICON_LIGHTNING = 3;
 }

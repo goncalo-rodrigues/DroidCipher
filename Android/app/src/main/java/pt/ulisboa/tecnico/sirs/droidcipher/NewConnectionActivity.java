@@ -14,7 +14,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.AcceptConnectionReceiver;
 import pt.ulisboa.tecnico.sirs.droidcipher.broadcastreceivers.DismissNotificationReceiver;
 
-public class NewConnectionActivity extends Activity {
+public class NewConnectionActivity extends AppCompatActivity {
 
     private TextView nameTV;
     private TextView addressTV;

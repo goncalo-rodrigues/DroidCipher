@@ -36,6 +36,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
 import pt.ulisboa.tecnico.sirs.droidcipher.MainActivity;
 import pt.ulisboa.tecnico.sirs.droidcipher.R;
 import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
+import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 
 /**
  * Created by goncalo on 10-11-2016.
@@ -89,26 +90,29 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         if (!KeyGenHelper.isKeyPairStored(this)) {
             KeyGenHelper.generateNewKeyPair(this);
         }
+        if (intent != null) {
 
-        int command = intent.getIntExtra(Constants.SERVICE_COMMAND_EXTRA, -1);
-        switch (command) {
-            case Constants.ACCEPT_COMMAND:
-                OnAcceptConnection();
-                return super.onStartCommand(intent, flags, startId);
-            case Constants.REJECT_COMMAND:
-                OnRejectConnection();
-                return super.onStartCommand(intent, flags, startId);
-            case Constants.RESET_CONN_COMMAND:
-                OnStopConnection();
-                return super.onStartCommand(intent, flags, startId);
-            case Constants.QR_CODE:
-                byte[] qrcodeInfo = intent.getByteArrayExtra(Constants.SERVICE_QRCODEINFO_EXTRA);
-                onQRCode(qrcodeInfo);
-                break;
-            case Constants.STOP_COMMAND:
-                stopSelf();
-                return START_NOT_STICKY;
+            int command = intent.getIntExtra(Constants.SERVICE_COMMAND_EXTRA, -1);
+            switch (command) {
+                case Constants.ACCEPT_COMMAND:
+                    OnAcceptConnection();
+                    return super.onStartCommand(intent, flags, startId);
+                case Constants.REJECT_COMMAND:
+                    OnRejectConnection();
+                    return super.onStartCommand(intent, flags, startId);
+                case Constants.RESET_CONN_COMMAND:
+                    OnStopConnection();
+                    return super.onStartCommand(intent, flags, startId);
+                case Constants.QR_CODE:
+                    byte[] qrcodeInfo = intent.getByteArrayExtra(Constants.SERVICE_QRCODEINFO_EXTRA);
+                    onQRCode(qrcodeInfo);
+                    break;
+                case Constants.STOP_COMMAND:
+                    stopSelf();
+                    return START_NOT_STICKY;
+            }
         }
+
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             Log.d(LOG_TAG, "Started");
@@ -129,9 +133,18 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     public void onQRCode(byte[] qrcodeinfo) {
         int cursor = 0;
-        byte[] macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
-        byte[] pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
-        byte[] integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
+        byte[] macAddressBytes;
+        byte[] pcUUIDBytes;
+        byte[] integrityKeyBytes;
+        try {
+            macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
+            pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
+            integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
+        } catch (IndexOutOfBoundsException e) {
+            Log.e(LOG_TAG, "Wrong QR Code");
+            return;
+        }
+
 
         String macAddress = new String(macAddressBytes);
         String pcUUID = new String(pcUUIDBytes);
@@ -158,6 +171,11 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         } catch (InvalidKeyException e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "Invalid private key");
+        }
+
+        if (decrypted == null || decrypted.length < 20) {
+            logEvent(Events.FAILED_CONNECTION_REQUEST, new Connection(device, "-"));
+            return null;
         }
 
         byte[] nonce = Arrays.copyOfRange(decrypted, 0, 4);
@@ -232,7 +250,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, fileKey);
                 logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
                 return encryptedFileKey;
-            } catch (InvalidKeyException e) {
+            } catch (Exception e) {
+                logEvent(Events.FAILED_FILE_DECRYPT_REQUEST, state.getCurrentConnection());
                 e.printStackTrace();
                 Log.e(LOG_TAG, "Invalid key!");
             }
@@ -286,9 +305,13 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         commKey = null;
         commIV = null;
         KeyGenHelper.saveCommuncationKey(this, null, null);
+        if (state.getCurrentConnection() != null) {
+            logEvent(Events.CONNECTION_LOST, state.getCurrentConnection());
+        }
         state.setCurrentConnection(null);
         state.setConnected(false);
         stopForeground(true);
+
         broadcastState();
 
     }
@@ -301,8 +324,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     public void logEvent(int eventId, Connection currentConnection) {
         Intent intent = new Intent(NEW_EVENT_ACTION);
-        intent.putExtra(EXTRA_EVENT, eventId);
-        intent.putExtra(EXTRA_CONNECTION, currentConnection);
+        Event event = new Event(eventId, currentConnection);
+        event.save();
+        intent.putExtra(EXTRA_EVENT, event);
+
         sendBroadcast(intent);
     }
 

@@ -4,6 +4,7 @@ import android.Manifest;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.hardware.Camera;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -16,14 +17,16 @@ import android.view.SurfaceView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.gms.common.images.Size;
 import com.google.android.gms.vision.CameraSource;
 import com.google.android.gms.vision.Detector;
 import com.google.android.gms.vision.barcode.Barcode;
 import com.google.android.gms.vision.barcode.BarcodeDetector;
 
 import java.io.IOException;
+import java.util.List;
 
-public class QRCodeReaderActivity extends Activity {
+public class QRCodeReaderActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = QRCodeReaderActivity.class.getSimpleName();
     private SurfaceView cameraView;
@@ -40,7 +43,8 @@ public class QRCodeReaderActivity extends Activity {
         cameraView = (SurfaceView) findViewById(R.id.cameraView);
         barcodeInfo = (TextView) findViewById(R.id.infoView);
         detector = new BarcodeDetector.Builder(this).setBarcodeFormats(Barcode.QR_CODE).build();
-        cameraSource = new CameraSource.Builder(this, detector).build();
+        cameraSource = new CameraSource.Builder(this, detector)
+                .build();
 
 
         if (ContextCompat.checkSelfPermission(this,
@@ -92,7 +96,6 @@ public class QRCodeReaderActivity extends Activity {
     }
 
     public void init() {
-
         tryStartCamera();
 
         detector.setProcessor(new Detector.Processor<Barcode>() {
@@ -118,7 +121,6 @@ public class QRCodeReaderActivity extends Activity {
             }
         });
     }
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         switch (requestCode) {

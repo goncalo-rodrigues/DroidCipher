@@ -23,13 +23,16 @@
             android:orientation="horizontal"
             android:layout_marginTop="24dp"
             >
-            <Button android:layout_width="24dp"
-                android:layout_height="24dp"
+            <ImageButton android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:padding="8dp"
                 android:layout_marginLeft="8dp"
-                android:background="@drawable/ic_basic_gear">
+                android:src="@drawable/gear_button"
+                android:scaleType="fitCenter"
+                android:background="#00000000"
+                android:id="@+id/main_settings_bt">
 
-            </Button>
+            </ImageButton>
             <ImageView
                 android:layout_width="0dp"
                 android:layout_height="32dp"
@@ -39,14 +42,16 @@
                 android:layout_marginLeft="10dp"
                 android:layout_marginRight="10dp"
                 />
-            <Button android:layout_width="24dp"
-                android:layout_height="24dp"
+            <ImageButton android:layout_width="40dp"
+                android:layout_height="40dp"
                 android:padding="8dp"
                 android:layout_marginRight="8dp"
-                android:background="@drawable/ic_arrows_circle_plus"
+                android:src="@drawable/plus_button"
+                android:scaleType="fitCenter"
+                android:background="#00000000"
                 android:id="@+id/main_add_device_bt"
                 >
-            </Button>
+            </ImageButton>
         </LinearLayout>
         <View
             android:layout_width="match_parent"

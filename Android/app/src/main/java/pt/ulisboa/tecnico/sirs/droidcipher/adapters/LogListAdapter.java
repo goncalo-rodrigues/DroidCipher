@@ -12,6 +12,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Date;
 
+import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.R;
 import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 
@@ -64,7 +65,21 @@ public class LogListAdapter extends BaseAdapter {
         CharSequence s = DateUtils.getRelativeTimeSpanString(event.getEventDate().getTime(), new Date().getTime(), 0L, DateUtils.FORMAT_ABBREV_ALL);
         date.setText(s.toString());
         if (event.getIcon() != -1) {
-            img.setImageResource(event.getIcon());
+            switch (event.getIcon()) {
+                case Constants.ICON_GOOD:
+                    img.setImageResource(R.drawable.ic_arrows_circle_check);
+                    break;
+                case Constants.ICON_DENY:
+                    img.setImageResource(R.drawable.ic_arrows_deny);
+                    break;
+                case Constants.ICON_LIGHTNING:
+                    img.setImageResource(R.drawable.ic_arrows_circle_lightning);
+                    break;
+                default:
+                    img.setImageResource(R.drawable.ic_arrows_circle_lightning);
+                    break;
+            }
+
         }
         return vi;
     }

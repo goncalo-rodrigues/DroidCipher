@@ -1,7 +1,6 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
-import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -14,30 +13,26 @@ import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.PopupMenu;
 import android.util.Log;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CompoundButton;
-import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.ListView;
-import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import org.w3c.dom.Text;
-
 import java.util.ArrayList;
-import java.util.Date;
+import java.util.Collections;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
-import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
-import pt.ulisboa.tecnico.sirs.droidcipher.Services.Events;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.ServiceState;
 import pt.ulisboa.tecnico.sirs.droidcipher.adapters.LogListAdapter;
 import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 
-public class MainActivity extends Activity {
+public class MainActivity extends AppCompatActivity {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final int SCANQR_REQUEST_CODE = 1;
     public ServiceState serviceState = new ServiceState();
@@ -48,7 +43,8 @@ public class MainActivity extends Activity {
     private TextView statusTv;
     private TextView deviceInfoTv;
     private Button stopStartBt;
-    private Button addDeviceBt;
+    private ImageButton addDeviceBt;
+    private ImageButton settingsBt;
     private LogListAdapter logAdapter;
     private ArrayList<Event> events = new ArrayList<>();
 
@@ -61,6 +57,7 @@ public class MainActivity extends Activity {
                         String rawData = data.getStringExtra(QRCodeReaderActivity.RESULT);
                         Intent serviceIntent = new Intent(this, MainProtocolService.class);
                         serviceIntent.putExtra(Constants.SERVICE_QRCODEINFO_EXTRA, rawData.getBytes());
+                        serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.QR_CODE);
                         startService(serviceIntent);
                         Log.d(LOG_TAG, "QR: " + rawData);
                         break;
@@ -83,21 +80,11 @@ public class MainActivity extends Activity {
         statusTv = (TextView) findViewById(R.id.main_service_status);
         deviceInfoTv = (TextView) findViewById(R.id.main_device_name);
         stopStartBt = (Button) findViewById(R.id.main_stopstart_bt);
-        addDeviceBt =(Button) findViewById(R.id.main_add_device_bt);
+        addDeviceBt =(ImageButton) findViewById(R.id.main_add_device_bt);
+        settingsBt = (ImageButton) findViewById(R.id.main_settings_bt);
         logAdapter = new LogListAdapter(this, events);
         logList.setAdapter(logAdapter);
-        // temporary
-        //((EditText) findViewById(R.id.main_pubkey_tv)).setText(KeyGenHelper.printKey(KeyGenHelper.getPublicKey(this)));
 
-//        resetConnectionBt.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Intent intent = new Intent(MainActivity.this, MainProtocolService.class);
-//                intent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.RESET_CONN_COMMAND);
-//                startService(intent);
-//            }
-//        });
-//
         stopStartBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -116,6 +103,31 @@ public class MainActivity extends Activity {
                 startActivityForResult(intent, SCANQR_REQUEST_CODE);
             }
         });
+
+        settingsBt.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //Creating the instance of PopupMenu
+                PopupMenu popup = new PopupMenu(MainActivity.this, settingsBt);
+                //Inflating the Popup using xml file
+                popup.getMenuInflater()
+                        .inflate(R.menu.settings_menu, popup.getMenu());
+
+                //registering popup with OnMenuItemClickListener
+                popup.setOnMenuItemClickListener(new PopupMenu.OnMenuItemClickListener() {
+                    public boolean onMenuItemClick(MenuItem item) {
+                        switch(item.getItemId()) {
+                            case R.id.get_pub_key_setting:
+                                settingCopyPublicKey();
+                                break;
+                        }
+                        return true;
+                    }
+                });
+
+                popup.show(); //showing popup menu
+            }
+        });
         serviceState.setOn(false);
 
         if (ContextCompat.checkSelfPermission(this,
@@ -132,6 +144,14 @@ public class MainActivity extends Activity {
 
 
 
+    }
+
+    public void settingCopyPublicKey() {
+        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        android.content.ClipData clip = android.content.ClipData.newPlainText("droidcipher pubkey",
+                KeyGenHelper.printKey(KeyGenHelper.getPublicKey(MainActivity.this)));
+        clipboard.setPrimaryClip(clip);
+        Toast.makeText(MainActivity.this, "Public key has been copied to your clipboard", Toast.LENGTH_SHORT).show();
     }
 
     public void init() {
@@ -165,6 +185,7 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onResume() {
+
         if (!mIsReceiverRegistered) {
             if (mReceiver == null)
                 mReceiver = new ServiceStateReceiver();
@@ -174,6 +195,10 @@ public class MainActivity extends Activity {
             registerReceiver(mReceiver, eventLogger);
             mIsReceiverRegistered = true;
         }
+        events.clear();
+        events.addAll(Event.listAll(Event.class));
+        Collections.sort(events);
+        logAdapter.notifyDataSetChanged();
         init();
         super.onResume();
     }
@@ -208,59 +233,6 @@ public class MainActivity extends Activity {
 
     }
 
-    public void newEvent(int eventID, Connection conn) {
-        Event newEvent = new Event();
-        String description = "";
-        int icon = -1;
-        switch(eventID) {
-            case Events.SERVICE_STARTED:
-                description = "Service started running";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.SERVICE_STOPPED:
-                description = "Service stopped running";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.ACCEPTED_CONNECTION:
-                description = "Connection established with " + conn.getDevice().getName() +
-                        " (ID:" + conn.getConnectionId() +")";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.NEW_CONNECTION_REQUEST:
-                description = "New connection request from " + conn.getDevice().getName() +
-                        " (ID:" + conn.getConnectionId() +")";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.FILE_DECRYPT_REQUEST:
-                description = "File decryption request from " + conn.getDevice().getName();
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.CONNECTION_LOST:
-                description = "Connection with " + conn.getDevice().getName() +
-                        " (ID:" + conn.getConnectionId() +") was dropped";
-                icon = R.drawable.ic_arrows_circle_lightning;
-                break;
-            case Events.NEW_DEVICE_ADDED:
-                description = "QRCode was read and a new device has been added";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-            case Events.REJECTED_CONNECTION:
-                description = "Connection rejected with " + conn.getDevice().getName() +
-                        " (ID:" + conn.getConnectionId() +")";
-                icon = R.drawable.ic_arrows_deny;
-                break;
-            default:
-                description = "Unknown event";
-                icon = R.drawable.ic_arrows_circle_check;
-                break;
-        }
-        newEvent.setDescription(description);
-
-        newEvent.setIcon(icon);
-        events.add(newEvent);
-        logAdapter.notifyDataSetChanged();
-    }
-
     public class ServiceStateReceiver extends BroadcastReceiver {
 
         @Override
@@ -277,9 +249,10 @@ public class MainActivity extends Activity {
                     });
                 }
             } else if (intent.getAction().equals(MainProtocolService.NEW_EVENT_ACTION)) {
-                int eventId = intent.getIntExtra(MainProtocolService.EXTRA_EVENT, -1);
-                Connection conn = intent.getParcelableExtra(MainProtocolService.EXTRA_CONNECTION);
-                newEvent(eventId, conn);
+                Event event = intent.getParcelableExtra(MainProtocolService.EXTRA_EVENT);
+                if (!events.contains(event))
+                    events.add(event);
+                logAdapter.notifyDataSetChanged();
             }
 
 
