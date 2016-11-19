@@ -106,7 +106,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 case Constants.QR_CODE:
                     byte[] qrcodeInfo = intent.getByteArrayExtra(Constants.SERVICE_QRCODEINFO_EXTRA);
                     onQRCode(qrcodeInfo);
-                    break;
+                    return super.onStartCommand(intent, flags, startId);
                 case Constants.STOP_COMMAND:
                     stopSelf();
                     return START_NOT_STICKY;
@@ -120,7 +120,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                 serverThread = new ServerThread(this);
                 serverThread.start();
                 logEvent(Events.SERVICE_STARTED, null);
-
             }
             state.setOn(true);
             broadcastState();
@@ -145,13 +144,19 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             return;
         }
 
+        if (!Asserter.AssertAESKey(integrityKeyBytes)) {
+            Log.e(LOG_TAG, "Qr code doest not contain a AES Key");
+            return;
+        }
 
-        String macAddress = new String(macAddressBytes);
+        String macAddress = new String(macAddressBytes);;
         String pcUUID = new String(pcUUIDBytes);
+        byte[] pubKey;
+        byte[] hmac;
         SecretKeySpec integrityKey = new SecretKeySpec(integrityKeyBytes, Constants.SYMMETRIC_CIPHER_ALGORITHM);
         PublicKey publicKey = KeyGenHelper.getPublicKey(this);
-        byte[] pubKey = KeyGenHelper.printKey(publicKey).getBytes();
-        byte[] hmac = CipherHelper.HMac(pubKey, integrityKey);
+        pubKey = KeyGenHelper.printKey(publicKey).getBytes();
+        hmac = CipherHelper.HMac(pubKey, integrityKey);
 
         ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey, hmac);
 
@@ -271,22 +276,28 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
         state.setOn(false);
         OnStopConnection();
-        if (serverThread != null)
+        if (serverThread != null) {
             serverThread.cancel();
+            serverThread.interrupt();
+        }
+
         serverThread = null;
+
         logEvent(Events.SERVICE_STOPPED, null);
     }
 
     @Override
     public void OnAcceptConnection() {
-        KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
-        commKey = newCommKey;
-        commIV = newCommIV;
-        newCommKey = null;
-        newCommIV = null;
-        synchronized(this) {
-            accepted = true;
-            this.notify();
+        if (newCommKey != null && newCommIV != null) {
+            KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
+            commKey = newCommKey;
+            commIV = newCommIV;
+            newCommKey = null;
+            newCommIV = null;
+            synchronized(this) {
+                accepted = true;
+                this.notify();
+            }
         }
     }
 

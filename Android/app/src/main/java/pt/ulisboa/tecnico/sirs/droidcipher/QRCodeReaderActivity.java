@@ -30,7 +30,6 @@ public class QRCodeReaderActivity extends AppCompatActivity {
 
     private static final String LOG_TAG = QRCodeReaderActivity.class.getSimpleName();
     private SurfaceView cameraView;
-    private TextView barcodeInfo;
     private CameraSource cameraSource;
     private BarcodeDetector detector;
     private boolean cameraStarted = false;
@@ -41,7 +40,6 @@ public class QRCodeReaderActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_qrcode_reader);
         cameraView = (SurfaceView) findViewById(R.id.cameraView);
-        barcodeInfo = (TextView) findViewById(R.id.infoView);
         detector = new BarcodeDetector.Builder(this).setBarcodeFormats(Barcode.QR_CODE).build();
         cameraSource = new CameraSource.Builder(this, detector)
                 .build();
@@ -108,15 +106,10 @@ public class QRCodeReaderActivity extends AppCompatActivity {
             public void receiveDetections(Detector.Detections<Barcode> detections) {
                 final SparseArray<Barcode> barcodes = detections.getDetectedItems();
                 if (barcodes.size() != 0) {
-                    barcodeInfo.post(new Runnable() {
-                        @Override
-                        public void run() {
-                            Intent data = new Intent();
-                            data.putExtra(RESULT, barcodes.valueAt(0).rawValue);
-                            setResult(RESULT_OK, data);
-                            finish();
-                        }
-                    });
+                    Intent data = new Intent();
+                    data.putExtra(RESULT, barcodes.valueAt(0).rawValue);
+                    setResult(RESULT_OK, data);
+                    finish();
                 }
             }
         });

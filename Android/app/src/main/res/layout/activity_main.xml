@@ -74,20 +74,29 @@
             android:layout_gravity="center"
             android:text="Running"
             android:id="@+id/main_service_status"/>
-        <TextView
+        <LinearLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            style="@style/TitleStyle"
-            android:layout_gravity="center"
-            android:layout_marginTop="16dp"
-            android:text="Connected device name"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            style="@style/ContentStyle"
-            android:layout_gravity="center"
-            android:text="goncalo-X3568"
-            android:id="@+id/main_device_name"/>
+            android:orientation="vertical"
+            android:layout_gravity="center_horizontal"
+            android:padding="16dp"
+            android:id="@+id/main_connection_info_ll">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                style="@style/TitleStyle"
+                android:text="@string/main_device_name"
+                android:id="@+id/main_device_title_tv"/>
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center_horizontal"
+                style="@style/ContentStyle"
+                android:text="goncalo-X8"
+                android:id="@+id/main_device_name"/>
+        </LinearLayout>
+
 
     </LinearLayout>
 
@@ -127,10 +136,8 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:id="@+id/main_log_lv"
-            android:paddingTop="16dp"
->
+            android:paddingTop="16dp" />
 
-        </ListView>
 
     </LinearLayout>
 

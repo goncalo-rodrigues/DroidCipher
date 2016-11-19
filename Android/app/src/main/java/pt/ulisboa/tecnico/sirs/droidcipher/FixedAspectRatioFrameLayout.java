@@ -37,8 +37,8 @@ public class FixedAspectRatioFrameLayout extends FrameLayout
     {
         //TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.FixedAspectRatioFrameLayout);
 
-        mAspectRatioWidth = 1;
-        mAspectRatioHeight = 1;
+        mAspectRatioWidth = 3;
+        mAspectRatioHeight = 4;
 
         //a.recycle();
     }

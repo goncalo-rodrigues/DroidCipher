@@ -11,6 +11,7 @@
     <string name="service_title">Connected</string>
     <string name="cancel_connection">Cancel connection</string>
     <string name="new_connection_warning">Attention! Do not accept this connection unless you explicitly started it. Doing otherwise can be dangerous and compromise your files.</string>
+    <string name="service_connected">Running</string>
     <string name="service_running">Running</string>
     <string name="service_stopped">Stopped</string>
     <string name="button_stop">Stop</string>
@@ -18,4 +19,8 @@
     <string name="accept_connection">Accept</string>
     <string name="reject_connection">Reject</string>
     <string name="get_public_key_setting">Get public key</string>
+    <string name="clear_log_setting">Clear log</string>
+    <string name="main_device_name">Connected device name</string>
+    <string name="main_device_addr">Connected device address</string>
+    <string name="scan_qr_code">To add a device, scan the QR Code</string>
 </resources>

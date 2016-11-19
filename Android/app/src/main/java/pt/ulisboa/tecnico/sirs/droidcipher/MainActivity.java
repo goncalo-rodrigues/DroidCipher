@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
+import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -17,16 +18,22 @@ import android.support.v7.widget.PopupMenu;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LayoutAnimationController;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.Collections;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.ServiceState;
 import pt.ulisboa.tecnico.sirs.droidcipher.adapters.LogListAdapter;
@@ -39,10 +46,14 @@ public class MainActivity extends AppCompatActivity {
     private boolean mIsReceiverRegistered;
     private ServiceStateReceiver mReceiver;
 
+    private int currentInfoId = 0;
+
     private ListView logList;
     private TextView statusTv;
     private TextView deviceInfoTv;
+    private TextView deviceInfoTitleTv;
     private Button stopStartBt;
+    private LinearLayout connectionInfoLl;
     private ImageButton addDeviceBt;
     private ImageButton settingsBt;
     private LogListAdapter logAdapter;
@@ -79,9 +90,11 @@ public class MainActivity extends AppCompatActivity {
         logList.setDivider(null);
         statusTv = (TextView) findViewById(R.id.main_service_status);
         deviceInfoTv = (TextView) findViewById(R.id.main_device_name);
+        deviceInfoTitleTv = (TextView) findViewById(R.id.main_device_title_tv);
         stopStartBt = (Button) findViewById(R.id.main_stopstart_bt);
         addDeviceBt =(ImageButton) findViewById(R.id.main_add_device_bt);
         settingsBt = (ImageButton) findViewById(R.id.main_settings_bt);
+        connectionInfoLl = (LinearLayout) findViewById(R.id.main_connection_info_ll);
         logAdapter = new LogListAdapter(this, events);
         logList.setAdapter(logAdapter);
 
@@ -120,6 +133,9 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.get_pub_key_setting:
                                 settingCopyPublicKey();
                                 break;
+                            case R.id.clear_log_setting:
+                                settingClearLog();
+                                break;
                         }
                         return true;
                     }
@@ -128,7 +144,15 @@ public class MainActivity extends AppCompatActivity {
                 popup.show(); //showing popup menu
             }
         });
-        serviceState.setOn(false);
+
+        connectionInfoLl.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                currentInfoId = (currentInfoId + 1) %2;
+                updateUI();
+            }
+        });
+        //serviceState.setOn(false);
 
         if (ContextCompat.checkSelfPermission(this,
                 Manifest.permission.BLUETOOTH)
@@ -152,6 +176,12 @@ public class MainActivity extends AppCompatActivity {
                 KeyGenHelper.printKey(KeyGenHelper.getPublicKey(MainActivity.this)));
         clipboard.setPrimaryClip(clip);
         Toast.makeText(MainActivity.this, "Public key has been copied to your clipboard", Toast.LENGTH_SHORT).show();
+    }
+
+    public void settingClearLog() {
+        events.clear();
+        Event.deleteAll(Event.class);
+        logAdapter.notifyDataSetChanged();
     }
 
     public void init() {
@@ -224,9 +254,25 @@ public class MainActivity extends AppCompatActivity {
             statusTv.setText(getString(R.string.service_stopped));
             stopStartBt.setText(R.string.button_start);
         }
-
-        if (serviceState.isConnected() && serviceState.getCurrentConnection() != null) {
-            deviceInfoTv.setText(serviceState.getCurrentConnection().getDevice().getName());
+        String infoToDisplay = "-";
+        String titleToDisplay;
+        Connection conn = serviceState.getCurrentConnection();
+        switch (currentInfoId) {
+            case 1:
+                if (conn != null)
+                    infoToDisplay = conn.getDevice().getAddress();
+                titleToDisplay = getString(R.string.main_device_addr);
+                break;
+            default:
+                if (conn != null)
+                    infoToDisplay = conn.getDevice().getName();
+                titleToDisplay = getString(R.string.main_device_name);
+                break;
+        }
+        deviceInfoTitleTv.setText(titleToDisplay);
+        if (serviceState.isOn() && serviceState.isConnected() && conn != null) {
+            deviceInfoTv.setText(infoToDisplay);
+            statusTv.setText(getString(R.string.service_connected));
         } else {
             deviceInfoTv.setText("-");
         }
