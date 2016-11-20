@@ -12,7 +12,7 @@ import qrcode
 from bluetooth import read_local_bdaddr
 from Crypto.Cipher import AES
 from Crypto import Random
-import time
+import uuid
 from Crypto.PublicKey import RSA
 from SmartphoneProxy import SmartphoneProxy
 
@@ -25,14 +25,15 @@ key_size = 256
 
 def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
-    #integrity_key = Random.new().read(key_size / 8)
-    #encoded_key = base64.b64encode(integrity_key)
-    # TODO: Use a random generator
-    #uuid = "d20782ff-ab2c-43ad-9b23-19dc63a333ef"
-    #mac = read_local_bdaddr()[0]
-    #qrcode_content = mac + "!" + uuid + "!" + encoded_key
-    #img = qrcode.make(qrcode_content)
-    #img.show()
+    integrity_key = Random.new().read(key_size / 8)
+    encoded_key = base64.b64encode(integrity_key)
+    random_uuid = str(uuid.uuid1())
+    mac = read_local_bdaddr()[0]
+    qrcode_content = mac + random_uuid + encoded_key
+
+    # TODO: Try to close the image after receiving a message from the smartphone
+    img = qrcode.make(qrcode_content)
+    img.show()
     android_info = ("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAty5EbYDuPAgynsBKGLqCSkU2vcboJfH+\
 iLudRPDY+G+4umESJE5KYNeaYv2gm+bQMEkuhvWicziS38DbUIrGZUy0njJruhZGirW5whQv6CV5\
 seYSQMpSzomyq2TDe6ZZckOUtJVnpueciI2Q40ZJ53BOWxe8ZVBdx0e2wlJRxUVc6ppqgQaSenxZ\
@@ -40,7 +41,7 @@ piDyhSeWbpwAhfKcjIO847y7RXVTYIThC5zXmEgDrHwljiHJkDs/2w+Uv7l8zkQ10B+WVsh5N239\
 l/nyKnoWpLJlySIMdLe6gJZ7rF8nyTY8TFddXL8kOEpQpHsPyPsEWWUM2/SlKC04smRrWzNIei9o\
 bgv6owIDAQAB","d1418830-a213-11e6-bdf4-0800200c9a66", "D8:50:E6:85:1E:41")
     print(len(base64.b64decode(android_info[0])))
-    #android_info = create_pc_service(uuid, integrity_key)
+    #android_info = create_pc_service(random_uuid)
 
     public_key = RSA.importKey(base64.b64decode(android_info[0]))#need to be tested
     pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)

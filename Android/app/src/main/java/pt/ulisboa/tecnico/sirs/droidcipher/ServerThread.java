@@ -50,7 +50,6 @@ public class ServerThread extends Thread {
 
     }
 
-    // TODO: Check the lifetime of an accepted socket
     public void run() {
         InputStream in = null;
         OutputStream out = null;

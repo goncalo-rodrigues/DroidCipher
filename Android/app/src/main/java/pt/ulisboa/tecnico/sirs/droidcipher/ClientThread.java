@@ -14,11 +14,15 @@ import java.util.UUID;
 public class ClientThread extends Thread {
     private final BluetoothSocket mmSocket;
     private final Context context;
+    private final byte[] publicKey;
+    private final byte[] hash;
     private final int BUFFER_SIZE = 10;
     private final int NUMBER_TRIES = 5;
 
     public ClientThread(Context context, String mac, String pcUuid, byte[] publicKey, byte[] hash) {
         this.context = context;
+        this.publicKey = publicKey;
+        this.hash = hash;
 
         // Use a temporary object that is later assigned to mmSocket,
         // because mmSocket is final
@@ -32,7 +36,7 @@ public class ClientThread extends Thread {
         mmSocket = tmp;
     }
 
-    public void run(byte[] publicKey, byte[] hash) {
+    public void run() {
         try {
             // Connect the device through the socket. This will block
             // until it succeeds or throws an exception
@@ -57,8 +61,7 @@ public class ClientThread extends Thread {
             } catch (IOException closeException) { }
         }
 
-        // Do work to manage the connection (in a separate thread)
-        // manageConnectedSocket(mmSocket);
+        cancel();
     }
 
     private void sendSmartphoneInfo(byte[] publicKey, byte[] hash)throws IOException {
@@ -66,10 +69,10 @@ public class ClientThread extends Thread {
         String macAddress = android.provider.Settings.Secure
                 .getString(context.getContentResolver(), "bluetooth_address");
 
-        out.write(publicKey);
         out.write(hash);
         out.write(context.getString(R.string.androidUUID).getBytes("UTF-8"));
         out.write(macAddress.getBytes("UTF-8"));
+        out.write(publicKey);
     }
 
     private boolean goodResponse() throws IOException {
