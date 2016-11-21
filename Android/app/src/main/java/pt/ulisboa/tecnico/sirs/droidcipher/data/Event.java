@@ -20,6 +20,7 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
     private String description;
     private Date eventDate;
     private int icon;
+    private int eventId;
 
 
     @Override
@@ -34,6 +35,7 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
     public Event(int eventID, Connection conn) {
         icon = -1;
         description = "";
+        this.eventId = eventID;
         switch(eventID) {
             case Events.SERVICE_STARTED:
                 description = "Service started running";
@@ -119,6 +121,22 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
     }
 
     @Override
+    public int compareTo(Object o) {
+        if (o instanceof Event) {
+            return eventDate.compareTo(((Event) o).getEventDate());
+        }
+        return -1;
+    }
+
+    public int getEventId() {
+        return eventId;
+    }
+
+    public void setEventId(int eventId) {
+        this.eventId = eventId;
+    }
+
+    @Override
     public int describeContents() {
         return 0;
     }
@@ -128,6 +146,7 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
         dest.writeString(this.description);
         dest.writeLong(this.eventDate != null ? this.eventDate.getTime() : -1);
         dest.writeInt(this.icon);
+        dest.writeInt(this.eventId);
     }
 
     protected Event(Parcel in) {
@@ -135,9 +154,10 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
         long tmpEventDate = in.readLong();
         this.eventDate = tmpEventDate == -1 ? null : new Date(tmpEventDate);
         this.icon = in.readInt();
+        this.eventId = in.readInt();
     }
 
-    public static final Parcelable.Creator<Event> CREATOR = new Parcelable.Creator<Event>() {
+    public static final Creator<Event> CREATOR = new Creator<Event>() {
         @Override
         public Event createFromParcel(Parcel source) {
             return new Event(source);
@@ -148,12 +168,4 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
             return new Event[size];
         }
     };
-
-    @Override
-    public int compareTo(Object o) {
-        if (o instanceof Event) {
-            return eventDate.compareTo(((Event) o).getEventDate());
-        }
-        return -1;
-    }
 }

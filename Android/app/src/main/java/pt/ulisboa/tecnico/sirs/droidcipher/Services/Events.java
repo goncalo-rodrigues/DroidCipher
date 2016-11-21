@@ -15,4 +15,5 @@ public class Events {
     public static final int SERVICE_STARTED = 7;
     public static final int FAILED_CONNECTION_REQUEST = 8;
     public static final int FAILED_FILE_DECRYPT_REQUEST = 9;
+    public static final int FAILED_QRCODE = 10;
 }

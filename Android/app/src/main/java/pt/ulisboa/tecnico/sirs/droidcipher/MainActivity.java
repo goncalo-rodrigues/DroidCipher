@@ -1,6 +1,7 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.Manifest;
+import android.app.ProgressDialog;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
@@ -35,6 +36,7 @@ import java.util.Collections;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.Events;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.ServiceState;
 import pt.ulisboa.tecnico.sirs.droidcipher.adapters.LogListAdapter;
@@ -59,6 +61,7 @@ public class MainActivity extends AppCompatActivity {
     private ImageButton addDeviceBt;
     private ImageButton settingsBt;
     private LogListAdapter logAdapter;
+    private ProgressDialog qrcodeDialog;
     private ArrayList<Event> events = new ArrayList<>();
 
     @Override
@@ -67,6 +70,8 @@ public class MainActivity extends AppCompatActivity {
             case SCANQR_REQUEST_CODE:
                 switch(resultCode) {
                     case RESULT_OK:
+                        qrcodeDialog = ProgressDialog.show(this, "Loading", "Processing QR Code...", true);
+                        qrcodeDialog.setCanceledOnTouchOutside(true);
                         String rawData = data.getStringExtra(QRCodeReaderActivity.RESULT);
                         Intent serviceIntent = new Intent(this, MainProtocolService.class);
                         serviceIntent.putExtra(Constants.SERVICE_QRCODEINFO_EXTRA, rawData.getBytes());
@@ -75,7 +80,6 @@ public class MainActivity extends AppCompatActivity {
                         Log.d(LOG_TAG, "QR: " + rawData);
                         break;
                     case RESULT_CANCELED:
-                        Toast.makeText(this, "Operation cancelled by user", Toast.LENGTH_SHORT).show();
                         break;
                 }
                 break;
@@ -315,7 +319,16 @@ public class MainActivity extends AppCompatActivity {
                     });
                 }
             } else if (intent.getAction().equals(MainProtocolService.NEW_EVENT_ACTION)) {
+
                 Event event = intent.getParcelableExtra(MainProtocolService.EXTRA_EVENT);
+                if (event.getEventId() == Events.NEW_DEVICE_ADDED) {
+                    qrcodeDialog.dismiss();
+                    Toast.makeText(MainActivity.this, "Device was added", Toast.LENGTH_SHORT).show();
+                } else if (event.getEventId() == Events.FAILED_QRCODE) {
+                    qrcodeDialog.dismiss();
+                    Toast.makeText(MainActivity.this, "An error occurred while trying to add a new device", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 if (!events.contains(event))
                     events.add(event);
                 logAdapter.notifyDataSetChanged();

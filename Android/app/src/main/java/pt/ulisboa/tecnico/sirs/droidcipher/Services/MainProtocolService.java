@@ -137,17 +137,20 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         byte[] macAddressBytes;
         byte[] pcUUIDBytes;
         byte[] integrityKeyBytes;
+
         try {
             macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
             pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
             integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
         } catch (IndexOutOfBoundsException e) {
             Log.e(LOG_TAG, "Wrong QR Code");
+            logEvent(Events.FAILED_QRCODE, null);
             return;
         }
 
         if (!Asserter.AssertAESKey(integrityKeyBytes)) {
             Log.e(LOG_TAG, "Qr code doest not contain a AES Key");
+            logEvent(Events.FAILED_QRCODE, null);
             return;
         }
 
@@ -164,7 +167,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
         client.start();
 
-        logEvent(Events.NEW_DEVICE_ADDED, null);
+        //logEvent(Events.NEW_DEVICE_ADDED, null);
     }
 
     public byte[] onNewConnection(byte[] message, BluetoothDevice device) {
