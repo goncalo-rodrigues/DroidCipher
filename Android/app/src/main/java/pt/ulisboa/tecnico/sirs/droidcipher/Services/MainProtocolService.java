@@ -343,6 +343,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     }
 
+    public void onDeviceAdded(BluetoothDevice device) {
+        logEvent(Events.NEW_DEVICE_ADDED, new Connection(device, "-"));
+    }
+
     public void broadcastState() {
         Intent intent = new Intent(STATE_CHANGE_ACTION);
         intent.putExtra(EXTRA_STATE, state);

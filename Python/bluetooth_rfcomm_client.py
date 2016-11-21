@@ -10,7 +10,7 @@ def connect_to_phone_service(server_address, uuid):
         socket.connect((server_address, service["port"]))
         print("MAC: " + server_address + "\nPort: " + str(service["port"]))
     except bluetooth.BluetoothError as e:
-        print("Got an error: " + e)
+        print("Got an error: " + e.message)
         return None
 
     return socket

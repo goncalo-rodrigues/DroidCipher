@@ -63,7 +63,7 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
                 icon = Constants.ICON_LIGHTNING;
                 break;
             case Events.NEW_DEVICE_ADDED:
-                description = "QRCode was read and a new device has been added";
+                description = "QRCode was read and the device has been added";
                 icon = Constants.ICON_GOOD;
                 break;
             case Events.REJECTED_CONNECTION:

@@ -9,12 +9,12 @@ from bluetooth_rfcomm_server import create_pc_service
 from mock import mock
 from PIL import Image
 import qrcode
-from bluetooth import read_local_bdaddr
 from Crypto.Cipher import AES
 from Crypto import Random
 import uuid
 from Crypto.PublicKey import RSA
 from SmartphoneProxy import SmartphoneProxy
+import bluetooth
 
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
@@ -28,18 +28,19 @@ def make_first_connection(program_files_dir, key_size):
     integrity_key = Random.new().read(key_size / 8)
     encoded_key = base64.b64encode(integrity_key)
     random_uuid = str(uuid.uuid1())
-    mac = read_local_bdaddr()[0]
+    mac = bluetooth.read_local_bdaddr()[0]
     qrcode_content = mac + random_uuid + encoded_key
 
     # TODO: Try to close the image after receiving a message from the smartphone
     img = qrcode.make(qrcode_content)
     img.show()
-    android_info = ("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAty5EbYDuPAgynsBKGLqCSkU2vcboJfH+\
-iLudRPDY+G+4umESJE5KYNeaYv2gm+bQMEkuhvWicziS38DbUIrGZUy0njJruhZGirW5whQv6CV5\
-seYSQMpSzomyq2TDe6ZZckOUtJVnpueciI2Q40ZJ53BOWxe8ZVBdx0e2wlJRxUVc6ppqgQaSenxZ\
-piDyhSeWbpwAhfKcjIO847y7RXVTYIThC5zXmEgDrHwljiHJkDs/2w+Uv7l8zkQ10B+WVsh5N239\
-l/nyKnoWpLJlySIMdLe6gJZ7rF8nyTY8TFddXL8kOEpQpHsPyPsEWWUM2/SlKC04smRrWzNIei9o\
-bgv6owIDAQAB","d1418830-a213-11e6-bdf4-0800200c9a66", "D8:50:E6:85:1E:41")
+    android_info = ("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt3fhsocVvG+2Reswbwvge6I0wu2OkMTI\
++IrvjFkbh0CZx6VZJsnZKnAjgkcv9rbZ8kAd0O5fFeE8Lmm1aBwzv2NJACsyeAOyzwtB4dGdPvw4\
+YmTtW87WGYQQzYf/Q9ZspBC5jt38lRNbWvkmvdoH/sCHA2ASwd7TRuzf3oPEf5gPHVs2qhAClNCo\
+JCoPy3SWa8oKiQp31F7ewVd5NLQlECv73XrCAL4gqI7CIXwnOh/RGfVDMKAHBD4xIVWqvx9O3S+o\
+UX/Ls6+7cnvHVScypMut1TT98AgQyzM/WGhfzmkypaRuGxGvvA95ZdaOApd8hDgC/G8hobmKEKvM\
+0xv/GQIDAQAB","d1418830-a213-11e6-bdf4-0800200c9a66", "50:A7:2B:79:61:F4")
+
     print(len(base64.b64decode(android_info[0])))
     #android_info = create_pc_service(random_uuid)
 

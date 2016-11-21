@@ -28,7 +28,7 @@ import com.google.android.gms.vision.barcode.BarcodeDetector;
 import java.io.IOException;
 import java.util.List;
 
-public class QRCodeReaderActivity extends AppCompatActivity {
+public class QRCodeReaderActivity extends AppCompatActivity implements SurfaceHolder.Callback {
 
     private static final String LOG_TAG = QRCodeReaderActivity.class.getSimpleName();
     private SurfaceView cameraView;
@@ -46,34 +46,6 @@ public class QRCodeReaderActivity extends AppCompatActivity {
         cameraView = (SurfaceView) findViewById(R.id.cameraView);
         closeBt = (Button) findViewById(R.id.new_connection_close_bt);
 
-
-        if (ContextCompat.checkSelfPermission(this,
-                Manifest.permission.CAMERA)
-                != PackageManager.PERMISSION_GRANTED) {
-            Log.i(LOG_TAG, "Requesting camera permission.");
-            ActivityCompat.requestPermissions(this,
-                    new String[]{Manifest.permission.CAMERA},
-                    0);
-        } else {
-
-            cameraView.getHolder().addCallback(new SurfaceHolder.Callback() {
-                @Override
-                public void surfaceCreated(SurfaceHolder holder) {
-                    init();
-                }
-
-                @Override
-                public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-                }
-
-                @Override
-                public void surfaceDestroyed(SurfaceHolder holder) {
-                    cameraSource.stop();
-                }
-            });
-
-        }
         closeBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -82,12 +54,33 @@ public class QRCodeReaderActivity extends AppCompatActivity {
                 finish();
             }
         });
+        if (ContextCompat.checkSelfPermission(this,
+                Manifest.permission.CAMERA)
+                != PackageManager.PERMISSION_GRANTED) {
+            Log.i(LOG_TAG, "Requesting camera permission.");
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.CAMERA},
+                    0);
+        } else {
+            cameraView.getHolder().addCallback(this);
+        }
+    }
 
+    @Override
+    protected void onResume() {
+
+
+        super.onResume();
+    }
+
+    @Override
+    protected void onPause() {
+
+        super.onPause();
     }
 
     @Override
     protected void onDestroy() {
-        cameraStarted = false;
         super.onDestroy();
     }
 
@@ -177,5 +170,21 @@ public class QRCodeReaderActivity extends AppCompatActivity {
             // permissions this app might request
         }
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+    }
+
+    @Override
+    public void surfaceCreated(SurfaceHolder surfaceHolder) {
+        init();
+    }
+
+    @Override
+    public void surfaceChanged(SurfaceHolder surfaceHolder, int i, int i1, int i2) {
+
+    }
+
+    @Override
+    public void surfaceDestroyed(SurfaceHolder surfaceHolder) {
+        cameraSource.stop();
+        cameraStarted = false;
     }
 }
