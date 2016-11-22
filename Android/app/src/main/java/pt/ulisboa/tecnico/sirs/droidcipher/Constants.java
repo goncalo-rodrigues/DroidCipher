@@ -35,4 +35,6 @@ public final class Constants {
     public static final int ICON_GOOD = 1;
     public static final int ICON_DENY = 2;
     public static final int ICON_LIGHTNING = 3;
+
+    public static final int AES_KEY_SIZE = 256; // in bits
 }

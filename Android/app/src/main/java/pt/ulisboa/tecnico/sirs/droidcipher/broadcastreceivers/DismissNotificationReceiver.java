@@ -32,7 +32,7 @@ public class DismissNotificationReceiver extends BroadcastReceiver{
 
 
         if (context instanceof IAcceptConnectionCallback) {
-            ((IAcceptConnectionCallback) context).OnRejectConnection(rejectedConnection);
+            ((IAcceptConnectionCallback) context).onRejectConnection(rejectedConnection);
         } else {
             Intent serviceIntent = new Intent(context, MainProtocolService.class);
             serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.REJECT_COMMAND);

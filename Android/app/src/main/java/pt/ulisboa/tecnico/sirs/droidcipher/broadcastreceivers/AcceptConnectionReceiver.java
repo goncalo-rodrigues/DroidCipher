@@ -34,7 +34,7 @@ public class AcceptConnectionReceiver extends BroadcastReceiver {
 
 
         if (context instanceof IAcceptConnectionCallback) {
-            ((IAcceptConnectionCallback) context).OnAcceptConnection(acceptedConnection);
+            ((IAcceptConnectionCallback) context).onAcceptConnection(acceptedConnection);
         } else {
             Intent serviceIntent = new Intent(context, MainProtocolService.class);
             serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.ACCEPT_COMMAND);

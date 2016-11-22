@@ -1,19 +1,16 @@
 package pt.ulisboa.tecnico.sirs.droidcipher.Services;
 
-import android.app.IntentService;
 import android.app.Notification;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.bluetooth.BluetoothAdapter;
+import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
-import android.hardware.camera2.params.BlackLevelPattern;
-import android.inputmethodservice.Keyboard;
 import android.os.Binder;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.media.MediaBrowserCompat;
 import android.util.Base64;
 import android.util.Log;
 
@@ -27,7 +24,6 @@ import javax.crypto.spec.SecretKeySpec;
 import pt.ulisboa.tecnico.sirs.droidcipher.ClientThread;
 import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 
-import pt.ulisboa.tecnico.sirs.droidcipher.Constants;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.Asserter;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.CipherHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.KeyGenHelper;
@@ -50,6 +46,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public static final String EXTRA_STATE = "extra:service_state";
     public static final String EXTRA_EVENT = "extra:event";
     public static final String EXTRA_CONNECTION = "extra:current_connection";
+    private static final String EXTRA_DEVICE = "extra:current_device";
 
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
@@ -96,14 +93,17 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             switch (command) {
                 case Constants.ACCEPT_COMMAND:
                     Connection toBeAccepted = intent.getParcelableExtra(EXTRA_CONNECTION);
-                    OnAcceptConnection(toBeAccepted);
+                    onAcceptConnection(toBeAccepted);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.REJECT_COMMAND:
                     Connection toBeRejected = intent.getParcelableExtra(EXTRA_CONNECTION);
-                    OnRejectConnection(toBeRejected);
+                    onRejectConnection(toBeRejected);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.RESET_CONN_COMMAND:
-                    OnStopConnection();
+                    BluetoothClass.Device toBeStopped = intent.getParcelableExtra(EXTRA_DEVICE);
+                    if (toBeStopped == null)
+                        onStopCurrentConnection();
+                    else onStopConnection(toBeStopped);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.QR_CODE:
                     byte[] qrcodeInfo = intent.getByteArrayExtra(Constants.SERVICE_QRCODEINFO_EXTRA);
@@ -143,12 +143,24 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
             integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
         } catch (IndexOutOfBoundsException e) {
-            Log.e(LOG_TAG, "Wrong QR Code");
+            Log.e(LOG_TAG, "Qr code is too small");
             logEvent(Events.FAILED_QRCODE, null);
             return;
         }
 
-        if (!Asserter.AssertAESKey(integrityKeyBytes)) {
+        if (!Asserter.assertMACAddress(macAddressBytes)) {
+            Log.e(LOG_TAG, "Qr code does not contain a valid mac address");
+            logEvent(Events.FAILED_QRCODE, null);
+            return;
+        }
+
+        if (!Asserter.assertUUID(pcUUIDBytes)) {
+            Log.e(LOG_TAG, "Qr code does not contain a valid UUID");
+            logEvent(Events.FAILED_QRCODE, null);
+            return;
+        }
+
+        if (!Asserter.assertAESKey(integrityKeyBytes)) {
             Log.e(LOG_TAG, "Qr code doest not contain a AES Key");
             logEvent(Events.FAILED_QRCODE, null);
             return;
@@ -194,7 +206,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         Connection connection = new Connection(device,
                 Base64.encodeToString(nonce, Base64.DEFAULT));
 
-        if (!Asserter.AssertAESKey(decryptedKey)) {
+        if (!Asserter.assertAESKey(decryptedKey)) {
             logEvent(Events.FAILED_CONNECTION_REQUEST, connection);
             Log.e(LOG_TAG, "Malformed communication key");
             return null;
@@ -285,7 +297,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public void onDestroy() {
 
         state.setOn(false);
-        OnStopConnection();
+        onStopCurrentConnection();
         if (serverThread != null) {
             serverThread.cancel();
             serverThread.interrupt();
@@ -297,7 +309,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
 
     @Override
-    public void OnAcceptConnection(Connection toBeAccepted) {
+    public void onAcceptConnection(Connection toBeAccepted) {
         synchronized (this) {
             String commId = toBeAccepted.getConnectionId();
             if (newCommKey != null && newCommIV != null &&
@@ -316,7 +328,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     }
 
     @Override
-    public void OnRejectConnection(Connection toBeRejected) {
+    public void onRejectConnection(Connection toBeRejected) {
         synchronized (this) {
             String commId = toBeRejected.getConnectionId();
             if (newCommKey != null && newCommIV != null &&
@@ -331,7 +343,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         }
     }
 
-    public void OnStopConnection() {
+    public void onStopCurrentConnection() {
         commKey = null;
         commIV = null;
         KeyGenHelper.saveCommuncationKey(this, null, null);
@@ -344,6 +356,11 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
         broadcastState();
 
+    }
+
+    public void onStopConnection(BluetoothClass.Device device) {
+        if (state.getCurrentConnection().getDevice().equals(device))
+            onStopCurrentConnection();
     }
 
     public void onDeviceAdded(BluetoothDevice device) {

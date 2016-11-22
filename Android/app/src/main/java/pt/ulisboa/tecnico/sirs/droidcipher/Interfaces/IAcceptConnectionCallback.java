@@ -7,6 +7,6 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Services.Connection;
  */
 
 public interface IAcceptConnectionCallback {
-    void OnAcceptConnection(Connection toBeAccepted);
-    void OnRejectConnection(Connection toBeRejected);
+    void onAcceptConnection(Connection toBeAccepted);
+    void onRejectConnection(Connection toBeRejected);
 }
