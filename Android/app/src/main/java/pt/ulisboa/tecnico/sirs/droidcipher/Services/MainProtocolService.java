@@ -46,7 +46,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public static final String EXTRA_STATE = "extra:service_state";
     public static final String EXTRA_EVENT = "extra:event";
     public static final String EXTRA_CONNECTION = "extra:current_connection";
-    private static final String EXTRA_DEVICE = "extra:current_device";
+    public static final String EXTRA_DEVICE = "extra:current_device";
 
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
@@ -100,7 +100,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
                     onRejectConnection(toBeRejected);
                     return super.onStartCommand(intent, flags, startId);
                 case Constants.RESET_CONN_COMMAND:
-                    BluetoothClass.Device toBeStopped = intent.getParcelableExtra(EXTRA_DEVICE);
+                    BluetoothDevice toBeStopped = intent.getParcelableExtra(EXTRA_DEVICE);
                     if (toBeStopped == null)
                         onStopCurrentConnection();
                     else onStopConnection(toBeStopped);
@@ -358,8 +358,9 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     }
 
-    public void onStopConnection(BluetoothClass.Device device) {
-        if (state.getCurrentConnection().getDevice().equals(device))
+    public void onStopConnection(BluetoothDevice device) {
+        Connection conn = state.getCurrentConnection();
+        if (conn != null && conn.getDevice().equals(device))
             onStopCurrentConnection();
     }
 

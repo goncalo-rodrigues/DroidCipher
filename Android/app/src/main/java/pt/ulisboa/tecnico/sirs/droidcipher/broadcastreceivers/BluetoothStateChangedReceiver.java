@@ -35,7 +35,7 @@ public class BluetoothStateChangedReceiver extends BroadcastReceiver {
         } else if (BluetoothDevice.ACTION_ACL_DISCONNECTED.equals(action)) {
                 // disconnected
                 BluetoothDevice device = intent.getParcelableExtra(BluetoothDevice.EXTRA_DEVICE);
-                serviceIntent.putExtra(MainProtocolService.EXTRA_CONNECTION, device);
+                serviceIntent.putExtra(MainProtocolService.EXTRA_DEVICE, device);
                 serviceIntent.putExtra(Constants.SERVICE_COMMAND_EXTRA, Constants.RESET_CONN_COMMAND);
                 context.startService(serviceIntent);
 
