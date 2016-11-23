@@ -46,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     public static final String LOG_TAG = MainActivity.class.getSimpleName();
     public static final int SCANQR_REQUEST_CODE = 1;
     public static final int BLUETOOTH_REQUEST_CODE = 2;
+    public static final int BLUETOOTH_FOR_QR_CODE_REQUEST_CODE = 3;
     public ServiceState serviceState = new ServiceState();
     private boolean mIsReceiverRegistered;
     private ServiceStateReceiver mReceiver;
@@ -89,11 +90,21 @@ public class MainActivity extends AppCompatActivity {
                         init();
                         break;
                     case RESULT_CANCELED:
-                        //TODO: tell user he needs bluetooth
+                        Toast.makeText(this, "You need bluetooth to start the service", Toast.LENGTH_SHORT).show();
                         break;
 
                 }
                 break;
+            case BLUETOOTH_FOR_QR_CODE_REQUEST_CODE:
+                switch (resultCode) {
+                    case RESULT_OK:
+                        Intent intent = new Intent(MainActivity.this, QRCodeReaderActivity.class);
+                        startActivityForResult(intent, SCANQR_REQUEST_CODE);
+                        break;
+                    case RESULT_CANCELED:
+                        Toast.makeText(this, "You need bluetooth to add a device", Toast.LENGTH_SHORT).show();
+                        break;
+                }
         }
         super.onActivityResult(requestCode, resultCode, data);
     }
@@ -136,8 +147,15 @@ public class MainActivity extends AppCompatActivity {
         addDeviceBt.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent intent = new Intent(MainActivity.this, QRCodeReaderActivity.class);
-                startActivityForResult(intent, SCANQR_REQUEST_CODE);
+                BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
+                if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
+                    Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
+                    startActivityForResult(enableBtIntent, BLUETOOTH_FOR_QR_CODE_REQUEST_CODE);
+                    return;
+                } else {
+                    Intent intent = new Intent(MainActivity.this, QRCodeReaderActivity.class);
+                    startActivityForResult(intent, SCANQR_REQUEST_CODE);
+                }
             }
         });
 
