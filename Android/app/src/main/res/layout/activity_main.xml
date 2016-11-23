@@ -109,6 +109,7 @@
         android:textColor="@color/black"
         style="@style/ButtonStyle"
         android:id="@+id/main_stopstart_bt"
+
         />
 
     <LinearLayout

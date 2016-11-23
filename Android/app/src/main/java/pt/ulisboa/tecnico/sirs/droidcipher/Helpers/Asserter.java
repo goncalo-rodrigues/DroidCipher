@@ -16,10 +16,13 @@ public class Asserter {
         if (macAddress.length != 17)
             return false;
         for (int i=0; i < 17; i++) {
-            if (i % 3 == 2)
+            if (i % 3 == 2) {
                 if (macAddress[i] != ':') {return false;}
-            else
+            }
+            else {
                 if (!isHex(macAddress[i])) {return false;}
+            }
+
         }
         return true;
     }
@@ -27,11 +30,14 @@ public class Asserter {
     public static boolean assertUUID(byte[] uuid) {
         if (uuid.length != 36)
             return false;
-        if (uuid[8] != '-' || uuid[13] != '-' || uuid[18] != '-' || uuid[23] != '-')
-            return false;
-        for (byte b: uuid) {
-            if (!isHex(b))
-                return false;
+        String s = new String(uuid);
+        for (int i=0; i < 36; i++) {
+            if (i ==8 || i==13 || i==18 || i==23) {
+                if (uuid[i] != '-') {return false;}
+            }
+            else {
+                if (!isHex(uuid[i])) {return false;}
+            }
         }
         return true;
     }

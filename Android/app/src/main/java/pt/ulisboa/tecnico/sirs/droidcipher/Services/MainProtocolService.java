@@ -136,12 +136,14 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         int cursor = 0;
         byte[] macAddressBytes;
         byte[] pcUUIDBytes;
+        byte[] integrityKeyBytesEncoded;
         byte[] integrityKeyBytes;
 
         try {
             macAddressBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 17)); //17 bytes
             pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
-            integrityKeyBytes = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
+            integrityKeyBytesEncoded = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
+            integrityKeyBytes = Base64.decode(integrityKeyBytesEncoded, Base64.DEFAULT);
         } catch (IndexOutOfBoundsException e) {
             Log.e(LOG_TAG, "Qr code is too small");
             logEvent(Events.FAILED_QRCODE, null);
@@ -166,7 +168,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             return;
         }
 
-        String macAddress = new String(macAddressBytes);;
+        String macAddress = new String(macAddressBytes);
         String pcUUID = new String(pcUUIDBytes);
         byte[] pubKey;
         byte[] hmac;
@@ -312,7 +314,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public void onAcceptConnection(Connection toBeAccepted) {
         synchronized (this) {
             String commId = toBeAccepted.getConnectionId();
-            if (newCommKey != null && newCommIV != null &&
+            if (newCommKey != null && newCommIV != null && state.getIncomingConnection() != null &&
                     state.getIncomingConnection().getConnectionId().equals(commId)) {
                 KeyGenHelper.saveCommuncationKey(this, newCommKey.getEncoded(), newCommIV);
                 commKey = newCommKey;
@@ -331,7 +333,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public void onRejectConnection(Connection toBeRejected) {
         synchronized (this) {
             String commId = toBeRejected.getConnectionId();
-            if (newCommKey != null && newCommIV != null &&
+            if (newCommKey != null && newCommIV != null && state.getIncomingConnection() != null &&
                     state.getIncomingConnection().getConnectionId().equals(commId)) {
                 newCommKey = null;
                 newCommIV = null;
@@ -364,8 +366,13 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             onStopCurrentConnection();
     }
 
+    // TODO: call when device added
     public void onDeviceAdded(BluetoothDevice device) {
         logEvent(Events.NEW_DEVICE_ADDED, new Connection(device, "-"));
+    }
+
+    public void onDeviceAddFail(BluetoothDevice device) {
+        logEvent(Events.FAILED_QRCODE, new Connection(device, "-"));
     }
 
     public void broadcastState() {
