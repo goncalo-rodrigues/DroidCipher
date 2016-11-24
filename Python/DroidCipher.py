@@ -39,7 +39,8 @@ def add_left_zeros(mac):
             while n_chars < 2:
                 result = "0" + result
                 n_chars += 1
-    return result
+        return result
+    return mac
 
 
 def make_first_connection(program_files_dir, key_size):
