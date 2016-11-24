@@ -15,6 +15,7 @@ import uuid
 from Crypto.PublicKey import RSA
 from SmartphoneProxy import SmartphoneProxy
 import bluetooth
+import subprocess
 
 
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
@@ -42,6 +43,17 @@ def add_left_zeros(mac):
         return result
     return mac
 
+def create_qrcode(qrcode_content, filename):
+    qr = qrcode.QRCode()
+    qr.add_data(qrcode_content)
+    qr.make(fit=True)
+    img = qr.make_image()
+    image_file = open(filename, "w")
+    img.save(image_file, "PNG")
+    image_file.close()
+    return subprocess.Popen(["display", filename])
+
+
 def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
     integrity_key = Random.new().read(key_size / 8)
@@ -50,14 +62,15 @@ def make_first_connection(program_files_dir, key_size):
     mac = add_left_zeros(bluetooth.read_local_bdaddr()[0])
     qrcode_content = mac + random_uuid + encoded_key
 
-    # TODO: Try to close the image after receiving a message from the smartphone
-    img = qrcode.make(qrcode_content)
-    img.show()
-
+    filename = "qrcode"
+    p = create_qrcode(qrcode_content, filename)
     android_info = create_pc_service(random_uuid)
 
     #TODO: Check the key's integrity
     integrity_preserved(android_info[0])
+
+    p.kill()
+    os.remove(filename)
 
     public_key = RSA.importKey(base64.b64decode(android_info[2]))
     pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)

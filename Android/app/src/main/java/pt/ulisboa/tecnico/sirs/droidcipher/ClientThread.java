@@ -10,28 +10,31 @@ import java.io.OutputStream;
 import java.nio.charset.Charset;
 import java.util.UUID;
 
+import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
+
 
 public class ClientThread extends Thread {
     private final BluetoothSocket mmSocket;
-    private final Context context;
+    private final MainProtocolService mps;
+    private final BluetoothDevice server;
     private final byte[] publicKey;
     private final byte[] hash;
     private final int BUFFER_SIZE = 10;
     private final int NUMBER_TRIES = 5;
 
-    public ClientThread(Context context, String mac, String pcUuid, byte[] publicKey, byte[] hash) {
-        this.context = context;
+    public ClientThread(MainProtocolService mps, String mac, String pcUuid, byte[] publicKey, byte[] hash) {
+        this.mps = mps;
         this.publicKey = publicKey;
         this.hash = hash;
 
         // Use a temporary object that is later assigned to mmSocket,
         // because mmSocket is final
         BluetoothSocket tmp = null;
-        BluetoothDevice device = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
+        server = BluetoothAdapter.getDefaultAdapter().getRemoteDevice(mac);
 
         // Get a BluetoothSocket to connect with the given BluetoothDevice
         try {
-            tmp = device.createRfcommSocketToServiceRecord(UUID.fromString(pcUuid));
+            tmp = server.createRfcommSocketToServiceRecord(UUID.fromString(pcUuid));
         } catch (IOException e) { }
         mmSocket = tmp;
     }
@@ -51,12 +54,16 @@ public class ClientThread extends Thread {
                     tryNumber++;
             }
 
-            if(tryNumber == NUMBER_TRIES)
+            if(tryNumber == NUMBER_TRIES) {
+                mps.onDeviceAddFail(server);
                 throw new TooManyTriesException();
+            }
 
+            mps.onDeviceAdded(server);
         } catch (IOException connectException) {
             // Unable to connect; close the socket and get out
             try {
+                mps.onDeviceAddFail(server);
                 mmSocket.close();
             } catch (IOException closeException) { }
         }
@@ -66,9 +73,9 @@ public class ClientThread extends Thread {
 
     private void sendSmartphoneInfo(byte[] publicKey, byte[] hash) throws IOException {
         OutputStream out = mmSocket.getOutputStream();
-        byte[] uuid = context.getString(R.string.androidUUID).getBytes("UTF-8");
+        byte[] uuid = mps.getString(R.string.androidUUID).getBytes("UTF-8");
         byte[] macAddress = android.provider.Settings.Secure
-                .getString(context.getContentResolver(), "bluetooth_address").getBytes("UTF-8");
+                .getString(mps.getContentResolver(), "bluetooth_address").getBytes("UTF-8");
 
         byte[] toSend = new byte[hash.length + uuid.length + macAddress.length + publicKey.length];
         System.arraycopy(hash, 0, toSend, 0, hash.length);

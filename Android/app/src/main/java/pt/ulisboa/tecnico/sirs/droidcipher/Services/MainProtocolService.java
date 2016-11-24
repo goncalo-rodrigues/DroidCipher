@@ -366,7 +366,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             onStopCurrentConnection();
     }
 
-    // TODO: call when device added
     public void onDeviceAdded(BluetoothDevice device) {
         logEvent(Events.NEW_DEVICE_ADDED, new Connection(device, "-"));
     }
