@@ -5,7 +5,7 @@ import marshal
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from Resources.createRSAKeys import cert_get_mock
-from bluetooth_rfcomm_server import create_pc_service
+from bluetooth_rfcomm_server import *
 from mock import mock
 from PIL import Image
 import qrcode
@@ -20,7 +20,26 @@ import bluetooth
 program_files_dir = os.environ['HOME'] + '/pythoncipher/'
 key_size = 256
 
+def add_left_zeros(mac):
+    size = len(mac)
+    result = ""
 
+    if size != 17:
+        n_chars = 0
+        for i in range(size - 1, -1, -1):
+            if ord(mac[i]) == ord(':'):
+                while n_chars < 2:
+                    result = "0" + result
+                    n_chars += 1
+                n_chars = 0
+            else:
+                n_chars += 1
+            result = mac[i] + result
+        if n_chars != 2:
+            while n_chars < 2:
+                result = "0" + result
+                n_chars += 1
+    return result
 
 
 def make_first_connection(program_files_dir, key_size):
@@ -28,34 +47,28 @@ def make_first_connection(program_files_dir, key_size):
     integrity_key = Random.new().read(key_size / 8)
     encoded_key = base64.b64encode(integrity_key)
     random_uuid = str(uuid.uuid1())
-    mac = bluetooth.read_local_bdaddr()[0]
+    mac = add_left_zeros(bluetooth.read_local_bdaddr()[0])
     qrcode_content = mac + random_uuid + encoded_key
 
     # TODO: Try to close the image after receiving a message from the smartphone
     img = qrcode.make(qrcode_content)
     img.show()
-    android_info = ("MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAt3fhsocVvG+2Reswbwvge6I0wu2OkMTI\
-+IrvjFkbh0CZx6VZJsnZKnAjgkcv9rbZ8kAd0O5fFeE8Lmm1aBwzv2NJACsyeAOyzwtB4dGdPvw4\
-YmTtW87WGYQQzYf/Q9ZspBC5jt38lRNbWvkmvdoH/sCHA2ASwd7TRuzf3oPEf5gPHVs2qhAClNCo\
-JCoPy3SWa8oKiQp31F7ewVd5NLQlECv73XrCAL4gqI7CIXwnOh/RGfVDMKAHBD4xIVWqvx9O3S+o\
-UX/Ls6+7cnvHVScypMut1TT98AgQyzM/WGhfzmkypaRuGxGvvA95ZdaOApd8hDgC/G8hobmKEKvM\
-0xv/GQIDAQAB","d1418830-a213-11e6-bdf4-0800200c9a66", "50:A7:2B:79:61:F4")
 
-    print(len(base64.b64decode(android_info[0])))
-    #android_info = create_pc_service(random_uuid)
+    android_info = create_pc_service(random_uuid)
 
-    public_key = RSA.importKey(base64.b64decode(android_info[0]))#need to be tested
+    #TODO: Check the key's integrity
+    integrity_preserved(android_info[0])
+
+    public_key = RSA.importKey(base64.b64decode(android_info[2]))
     pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)
     public_key_file = open(program_files_dir + 'cert/public_key.txt', 'w')
     public_key_file.write(pke)
     public_key_file.close()
 
     metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'w')
-    marshal.dump([android_info[1], android_info[2]], metadata_file) #saves android_uuid and android_mac
+    marshal.dump([android_info[3], android_info[4]], metadata_file) #saves android_uuid and android_mac
     metadata_file.close()
 
-    """TODO change to previous lines"""
-    #cert_get_mock(program_files_dir)
 
 def list_files(path, file_list):
     print("Existing Files:")
@@ -90,11 +103,8 @@ metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
 metadata = marshal.load(metadata_file)
 android_mac = metadata[1]
 android_uuid = metadata[0]
-#android_mac = "XXX REMOVE"
-#android_uuid = "XXX REMOVE"
 proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
 metadata_file.close()
-#proxy = mock(program_files_dir)  # TODO put real socket here
 files_list = []
 list_files(program_files_dir, files_list)
 

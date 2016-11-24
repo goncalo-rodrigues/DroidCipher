@@ -1,4 +1,20 @@
 from bluetooth import *
+import base64
+
+
+def data_copy(d_from, offset_from, size):
+    d_to = str()
+    upper_bound = -1
+
+    if len(d_from) < offset_from + size:
+        upper_bound = len(d_from)
+    else:
+        upper_bound = offset_from + size
+
+    for i in range(offset_from, upper_bound):
+        d_to += d_from[i]
+
+    return d_to
 
 
 def create_pc_service(uuid):
@@ -19,10 +35,12 @@ def create_pc_service(uuid):
     client_sock, client_info = server_sock.accept()
     print("Accepted connection from " + str(client_info))
 
-    hash = client_sock.recv(32)
-    android_uuid = str(client_sock.recv(36))
-    android_mac = str(client_sock.recv(17))
-    public_key = client_sock.recv(300)  # TODO: Check if this is the right amount of bits
+    full_message = client_sock.recv(550)
+
+    hash = data_copy(full_message, 0, 64)
+    android_uuid = data_copy(full_message, 64, 36)
+    android_mac = data_copy(full_message, 100, 17)
+    public_key = data_copy(full_message, 117, 400)
 
     stop_advertising(server_sock)
     server_sock.close()

@@ -64,15 +64,20 @@ public class ClientThread extends Thread {
         cancel();
     }
 
-    private void sendSmartphoneInfo(byte[] publicKey, byte[] hash)throws IOException {
+    private void sendSmartphoneInfo(byte[] publicKey, byte[] hash) throws IOException {
         OutputStream out = mmSocket.getOutputStream();
-        String macAddress = android.provider.Settings.Secure
-                .getString(context.getContentResolver(), "bluetooth_address");
+        byte[] uuid = context.getString(R.string.androidUUID).getBytes("UTF-8");
+        byte[] macAddress = android.provider.Settings.Secure
+                .getString(context.getContentResolver(), "bluetooth_address").getBytes("UTF-8");
 
-        out.write(hash);
-        out.write(context.getString(R.string.androidUUID).getBytes("UTF-8"));
-        out.write(macAddress.getBytes("UTF-8"));
-        out.write(publicKey);
+        byte[] toSend = new byte[hash.length + uuid.length + macAddress.length + publicKey.length];
+        System.arraycopy(hash, 0, toSend, 0, hash.length);
+        System.arraycopy(uuid, 0, toSend, hash.length, uuid.length);
+        System.arraycopy(macAddress, 0, toSend, hash.length + uuid.length, macAddress.length);
+        System.arraycopy(publicKey, 0, toSend, hash.length + uuid.length + macAddress.length,
+                publicKey.length);
+
+        out.write(toSend);
     }
 
     private boolean goodResponse() throws IOException {
