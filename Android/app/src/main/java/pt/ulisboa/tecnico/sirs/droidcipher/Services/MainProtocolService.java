@@ -253,42 +253,35 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             return null;
         }
     }
-    public byte[] onNewMessage(String messageType, byte [] message) {
-         if (messageType.equals(Constants.MESSAGE_TYPE_FILEKEY)) {
-
-            // loading to memory
-            if (commKey == null) {
-                commKey = KeyGenHelper.getLastCommunicationKey(this);
-            }
-            if (commIV == null) {
-                commIV = KeyGenHelper.getLastCommunicationIV(this);
-            }
-            if (privateKey == null) {
-                privateKey = KeyGenHelper.getPrivateKey(this);
-            }
-
-            Log.d(LOG_TAG, "IV:" + Base64.encodeToString(commIV, Base64.DEFAULT));
-            boolean accepted = commKey != null && commIV != null && privateKey != null;
-            if (!accepted) {
-                Log.e(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
-                return null;
-            }
-            try {
-                byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
-                byte[] fileKey = CipherHelper.RSADecrypt(privateKey, decryptedMessage);
-                byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, fileKey);
-                logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
-                return encryptedFileKey;
-            } catch (Exception e) {
-                logEvent(Events.FAILED_FILE_DECRYPT_REQUEST, state.getCurrentConnection());
-                e.printStackTrace();
-                Log.e(LOG_TAG, "Invalid key!");
-            }
-
+    public byte[] onNewMessage(byte [] message) {
+    // loading to memory
+        if (commKey == null) {
+            commKey = KeyGenHelper.getLastCommunicationKey(this);
         }
-        else {
-             Log.e(LOG_TAG, "Unknown message type");
-         }
+        if (commIV == null) {
+            commIV = KeyGenHelper.getLastCommunicationIV(this);
+        }
+        if (privateKey == null) {
+            privateKey = KeyGenHelper.getPrivateKey(this);
+        }
+
+        Log.d(LOG_TAG, "IV:" + Base64.encodeToString(commIV, Base64.DEFAULT));
+        boolean accepted = commKey != null && commIV != null && privateKey != null;
+        if (!accepted) {
+            Log.e(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
+            return null;
+        }
+        try {
+            byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
+            byte[] fileKey = CipherHelper.RSADecrypt(privateKey, decryptedMessage);
+            byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, fileKey);
+            logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
+            return encryptedFileKey;
+        } catch (Exception e) {
+            logEvent(Events.FAILED_FILE_DECRYPT_REQUEST, state.getCurrentConnection());
+            e.printStackTrace();
+            Log.e(LOG_TAG, "Invalid key!");
+        }
         return null;
     }
 

@@ -78,15 +78,16 @@ public class ServerThread extends Thread {
                 int size = in.read(buffer);
                 Log.i(LOG_TAG, "Received message: " + new String(buffer, 0, size));
 
-                String messageType = buffer[0] == 0x0 ? Constants.MESSAGE_TYPE_NEWCONNECTION
-                        : Constants.MESSAGE_TYPE_FILEKEY;
                 byte[] result;
                 byte[] message = Arrays.copyOfRange(buffer, 1, size);
-                if (messageType == Constants.MESSAGE_TYPE_NEWCONNECTION) {
+                if (buffer[0] == 0x0) {
                     result = providedService.onNewConnection(message, clientSocket.getRemoteDevice());
-                } else {
+                } else if(buffer[0] == 0x1) {
                     // Provide the service
-                    result = providedService.onNewMessage(messageType, message);
+                    result = providedService.onNewMessage(message);
+                } else {
+                    //TODO: Create service to measure connection
+                    result = null;
                 }
 
                 if (result == null) {
