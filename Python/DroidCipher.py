@@ -42,7 +42,6 @@ def add_left_zeros(mac):
         return result
     return mac
 
-
 def make_first_connection(program_files_dir, key_size):
     print("Making the first connection")
     integrity_key = Random.new().read(key_size / 8)

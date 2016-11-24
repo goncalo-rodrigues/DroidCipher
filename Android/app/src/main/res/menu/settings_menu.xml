@@ -5,6 +5,9 @@
         android:id="@+id/get_pub_key_setting"
         android:title="@string/get_public_key_setting"/>
     <item
+        android:id="@+id/reset_key_pair_setting"
+        android:title="@string/reset_key_pair_setting"/>
+    <item
         android:id="@+id/clear_log_setting"
         android:title="@string/clear_log_setting"/>
 

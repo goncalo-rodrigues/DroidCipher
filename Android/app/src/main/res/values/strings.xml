@@ -23,4 +23,9 @@
     <string name="main_device_name">Connected device name</string>
     <string name="main_device_addr">Connected device address</string>
     <string name="scan_qr_code">To add a device, scan the QR Code</string>
+    <string name="reset_key_pair_setting">Reset keys</string>
+    <string name="ok">Ok</string>
+    <string name="cancel">Cancel</string>
+    <string name="warning">Warning</string>
+    <string name="reset_keys_warning">You will not be able to recover any of your currently encrypted files. Are you sure you want to reset your keys?</string>
 </resources>

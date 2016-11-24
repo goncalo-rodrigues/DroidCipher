@@ -6,6 +6,7 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.pm.PackageManager;
@@ -15,6 +16,7 @@ import android.os.Looper;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.PopupMenu;
 import android.util.Log;
@@ -178,6 +180,9 @@ public class MainActivity extends AppCompatActivity {
                             case R.id.clear_log_setting:
                                 settingClearLog();
                                 break;
+                            case R.id.reset_key_pair_setting:
+                                settingResetKeys();
+                                break;
                         }
                         return true;
                     }
@@ -224,6 +229,24 @@ public class MainActivity extends AppCompatActivity {
         events.clear();
         Event.deleteAll(Event.class);
         logAdapter.notifyDataSetChanged();
+    }
+
+    public void settingResetKeys() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setPositiveButton(R.string.ok, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                KeyGenHelper.generateNewKeyPair(MainActivity.this);
+            }
+        });
+        builder.setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface dialog, int id) {
+                // User cancelled the dialog
+            }
+        });
+        builder.setTitle(R.string.warning);
+        builder.setMessage(R.string.reset_keys_warning);
+        AlertDialog dialog = builder.create();
+        dialog.show();
     }
 
     public void init() {

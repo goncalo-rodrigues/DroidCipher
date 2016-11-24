@@ -144,7 +144,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             pcUUIDBytes = Arrays.copyOfRange(qrcodeinfo, cursor, (cursor += 36)); //36 bytes
             integrityKeyBytesEncoded = Arrays.copyOfRange(qrcodeinfo, cursor, qrcodeinfo.length); //remaining bytes
             integrityKeyBytes = Base64.decode(integrityKeyBytesEncoded, Base64.DEFAULT);
-        } catch (IndexOutOfBoundsException e) {
+        } catch (IndexOutOfBoundsException | IllegalArgumentException e) {
             Log.e(LOG_TAG, "Qr code is too small");
             logEvent(Events.FAILED_QRCODE, null);
             return;
