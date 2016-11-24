@@ -43,7 +43,6 @@ def add_left_zeros(mac):
         return result
     return mac
 
-
 def create_qrcode(qrcode_content, filename):
     qr = qrcode.QRCode()
     qr.add_data(qrcode_content)
