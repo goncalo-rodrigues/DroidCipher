@@ -109,8 +109,9 @@ print('Using ' + program_files_dir + ' as program file')
 if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
     if os.path.exists(program_files_dir + 'cert') == False:
         os.mkdir(program_files_dir + 'cert')
+    #os.system('xterm -e "sudo python FirstConection.py ' + program_files_dir +' '+ str(key_size) + '"')
     make_first_connection(program_files_dir, key_size)
-
+print("finished FirstConection")
 
 metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
 metadata = marshal.load(metadata_file)

@@ -1,8 +1,8 @@
 import os.path
 import re
-from FileOperations import decrypt_file
-from FileOperations import encrypt_file
-from Resources.createRSAKeys import cert_get_mock
+from Python.FileOperations import decrypt_file
+from Python.FileOperations import encrypt_file
+from Python.Resources.createRSAKeys import cert_get_mock
 from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
