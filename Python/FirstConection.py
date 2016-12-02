@@ -61,7 +61,7 @@ android_info = create_pc_service(random_uuid)
 integrity_preserved(android_info[0])
 
 p.kill()
-os.remove(filename)
+os.system("shred -u " + filename)
 
 public_key = RSA.importKey(base64.b64decode(android_info[2]))
 pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)

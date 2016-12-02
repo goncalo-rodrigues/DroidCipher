@@ -48,22 +48,6 @@ class SmartphoneProxy:
         encrypted_message = asymmetric_cipher.encrypt(nonce + self.iv + self.communication_key)
         exchange_communication_key(self.socket, encrypted_message, nonce)
 
-"""
-def connect_to_phone_service(server_address, uuid):
-    service = bluetooth.find_service(address=server_address, uuid=uuid)
-    service = service[0]
-
-    socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
-    try:
-        socket.connect((server_address, service["port"]))
-        print("MAC: " + server_address + "\nPort: " + str(service["port"]))
-    except bluetooth.BluetoothError as e:
-        print("Got an error: " + e)
-        return None
-
-    return socket
-"""
-
 
 def encodePKCS7(text):
     text_length = len(text)

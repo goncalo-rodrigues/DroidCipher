@@ -46,11 +46,11 @@ def encrypt_file(keySize, filename, path):
     metadata_file.close()
 
     if os.path.isfile(metadata_file_name):
-        os.remove(metadata_file_name)
-    os.rename(metadata_temporary_name,metadata_file_name)
+        os.system("shred -u " + metadata_file_name)
+    os.rename(metadata_temporary_name, metadata_file_name)
     if os.path.isfile(out_file_name):
-        os.remove(out_file_name)
-    os.rename(out_temporary_name,out_file_name)
+        os.system("shred -u " + out_file_name)
+    os.rename(out_temporary_name, out_file_name)
 
 
 def decrypt_file(filename, path, socket):
@@ -85,6 +85,6 @@ def decrypt_file(filename, path, socket):
     metadata_file.close()
 
     if os.path.isfile(path + filename):
-        os.remove(path + filename)
-    os.rename(out_temporary_name, path +filename)
+        os.system("shred -u " + path + filename)
+    os.rename(out_temporary_name, path + filename)
 
