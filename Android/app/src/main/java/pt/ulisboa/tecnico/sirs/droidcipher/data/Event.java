@@ -83,6 +83,10 @@ public class Event extends SugarRecord implements Parcelable, Comparable {
                         " has failed";
                 icon = Constants.ICON_DENY;
                 break;
+            case Events.FAILED_QRCODE:
+                description = "A misformatted Qr code was scanned. Ignoring";
+                icon = Constants.ICON_DENY;
+                break;
             default:
                 description = "Unknown event";
                 icon = Constants.ICON_GOOD;

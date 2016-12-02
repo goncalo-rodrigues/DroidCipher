@@ -92,7 +92,7 @@ public class ClientThread extends Thread {
         byte[] buffer = new byte[BUFFER_SIZE];
         int size = in.read(buffer);
 
-        if(size > 2) {
+        if(size == 2) {
             String message = new String(buffer, 0, size);
             return message.startsWith("OK");
         }
