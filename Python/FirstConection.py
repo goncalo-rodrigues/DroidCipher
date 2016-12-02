@@ -46,6 +46,10 @@ program_files_dir = sys.argv[1]
 key_size = int(sys.argv[2])
 #make_first_connection(program_files_dir, key_size)
 
+if os.path.exists(program_files_dir + 'cert') == False:
+    os.mkdir(program_files_dir + 'cert')#,745)
+
+
 print("Making the first connection")
 integrity_key = Random.new().read(key_size / 8)
 encoded_key = base64.b64encode(integrity_key)
@@ -72,4 +76,5 @@ public_key_file.close()
 metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'w')
 marshal.dump([android_info[3], android_info[4]], metadata_file)  # saves android_uuid and android_mac
 metadata_file.close()
+os.system('xterm -e "sudo chattr +i ' + program_files_dir + 'cert' + '"')
 
