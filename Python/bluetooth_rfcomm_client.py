@@ -16,7 +16,7 @@ def connect_to_phone_service(server_address, uuid):
     return socket
 
 
-def exchange_communication_key(socket, encrypted_iv_communication_key,nonce):
+def exchange_communication_key(socket, encrypted_iv_communication_key, nonce):
     NUMBER_OF_TRIES = 5
     try_number = 0
 
@@ -61,3 +61,7 @@ def request_file_key(socket, double_encrypted_file_key):
 
     # The program cannot go on. This error will crash the program.
     non_existing_statement()
+
+
+#def request_rssi(socket):
+
