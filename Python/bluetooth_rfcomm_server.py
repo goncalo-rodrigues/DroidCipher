@@ -1,10 +1,8 @@
 from bluetooth import *
-import base64
 
 
 def data_copy(d_from, offset_from, size):
     d_to = str()
-    upper_bound = -1
 
     if len(d_from) < offset_from + size:
         upper_bound = len(d_from)
