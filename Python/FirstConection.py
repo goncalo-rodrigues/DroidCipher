@@ -66,17 +66,17 @@ while exchanged == False:
     p = create_qrcode(qrcode_content, filename)
     android_info = create_pc_service(random_uuid)
 
-    h = HMAC.new(integrity_key, android_info[2], SHA512)
-    if android_info[1] == h.digest():
-        print("android_info[2]")
+    #h = HMAC.new(integrity_key, android_info[2], SHA512)
+    #if android_info[1] == h.digest():
+    #    print("android_info[2]")
+     #   integrity_preserved(android_info[0])
+     #   exchanged = True
+
+    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512)
+    if android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest():
+        print("android_info[2]+3+4")
         integrity_preserved(android_info[0])
         exchanged = True
-
-    #h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512)
-    #elif android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest():
-        #print("android_info[2]+3+4")
-        #integrity_preserved(android_info[0])
-        #exchanged = True
     else:
        integrity_changed(android_info[0])
        print(colors.RED + "X----> Android public key integrity not ok" + colors.RESET)
