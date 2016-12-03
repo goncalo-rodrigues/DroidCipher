@@ -6,6 +6,7 @@ import base64
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
 from Crypto.Hash import SHA256
+from Colors import colors
 
 
 
@@ -26,9 +27,12 @@ def encrypt_file(keySize, filename, path):
     print("created file key:" + base64.b64encode(key))
     public_key = RSA.importKey(open(path +'cert/public_key.txt').read(), passphrase='password')
     asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo = SHA256)#mudar isto para sha256
+    h = SHA256.new()
+    h.update(key)
+    hashedkey = h.digest()
     cipher_key = asymmetric_cipher.encrypt(key)
     iv = Random.new().read(AES.block_size)
-    marshal.dump([file_size, cipher_key, iv], metadata_file)
+    marshal.dump([file_size, cipher_key, iv, hashedkey], metadata_file)
 
     cipher = AES.new(key, AES.MODE_CBC, iv)
 
@@ -46,11 +50,11 @@ def encrypt_file(keySize, filename, path):
     metadata_file.close()
 
     if os.path.isfile(metadata_file_name):
-        os.remove(metadata_file_name)
-    os.rename(metadata_temporary_name,metadata_file_name)
+        os.system("shred -u " + metadata_file_name)
+    os.rename(metadata_temporary_name, metadata_file_name)
     if os.path.isfile(out_file_name):
-        os.remove(out_file_name)
-    os.rename(out_temporary_name,out_file_name)
+        os.system("shred -u " + out_file_name)
+    os.rename(out_temporary_name, out_file_name)
 
 
 def decrypt_file(filename, path, socket):
@@ -67,8 +71,26 @@ def decrypt_file(filename, path, socket):
     """saves info to later decipher"""
     file_size = metadata[0]
     encrypted_key = metadata[1]
-    key = socket.decrypt_key(encrypted_key)
     iv = metadata[2]
+    hashedkey = metadata[3]
+
+    key = socket.decrypt_key(encrypted_key)
+    if key == None:
+        input_file.close()
+        output_file.close()
+        metadata_file.close()
+        print(colors.RED + "X----> Some problem in geting the key from android !!!" + colors.RESET)
+        return
+
+    h = SHA256.new()
+    h.update(key)
+    newhashedkey = h.digest()
+    if newhashedkey != hashedkey:
+        input_file.close()
+        output_file.close()
+        metadata_file.close()
+        print(colors.RED+"X----> the key received is not equal to the one created !!!"+colors.RESET)
+        return
 
     decipher = AES.new(key, AES.MODE_CBC, iv)
 
@@ -85,6 +107,6 @@ def decrypt_file(filename, path, socket):
     metadata_file.close()
 
     if os.path.isfile(path + filename):
-        os.remove(path + filename)
-    os.rename(out_temporary_name, path +filename)
+        os.system("shred -u " + path + filename)
+    os.rename(out_temporary_name, path + filename)
 
