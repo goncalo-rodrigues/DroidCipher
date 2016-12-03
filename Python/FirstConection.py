@@ -8,6 +8,9 @@ import qrcode
 import subprocess
 from bluetooth_rfcomm_server import *
 from Crypto.PublicKey import RSA
+from Crypto.Hash import HMAC
+from Crypto.Hash import SHA512
+from Colors import colors
 
 def add_left_zeros(mac):
     size = len(mac)
@@ -50,22 +53,37 @@ if os.path.exists(program_files_dir + 'cert') == False:
     os.mkdir(program_files_dir + 'cert')#,745)
 
 
-print("Making the first connection")
-integrity_key = Random.new().read(key_size / 8)
-encoded_key = base64.b64encode(integrity_key)
-random_uuid = str(uuid.uuid1())
-mac = add_left_zeros(bluetooth.read_local_bdaddr()[0])
-qrcode_content = mac + random_uuid + encoded_key
+exchanged = False
+while exchanged == False:
+    print("Making the first connection")
+    integrity_key = Random.new().read(key_size / 8)
+    encoded_key = base64.b64encode(integrity_key)
+    random_uuid = str(uuid.uuid1())
+    mac = add_left_zeros(bluetooth.read_local_bdaddr()[0])
+    qrcode_content = mac + random_uuid + encoded_key
 
-filename = "qrcode"
-p = create_qrcode(qrcode_content, filename)
-android_info = create_pc_service(random_uuid)
+    filename = "qrcode"
+    p = create_qrcode(qrcode_content, filename)
+    android_info = create_pc_service(random_uuid)
 
-# TODO: Check the key's integrity
-integrity_preserved(android_info[0])
+    h = HMAC.new(integrity_key, android_info[2], SHA512)
+    if android_info[1] == h.digest():
+        print("android_info[2]")
+        integrity_preserved(android_info[0])
+        exchanged = True
 
-p.kill()
-os.system("shred -u " + filename)
+    #h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512)
+    #elif android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest():
+        #print("android_info[2]+3+4")
+        #integrity_preserved(android_info[0])
+        #exchanged = True
+    else:
+       integrity_changed(android_info[0])
+       print(colors.RED + "X----> Android public key integrity not ok" + colors.RESET)
+
+    p.kill()
+    os.system("shred -u " + filename)
+
 
 public_key = RSA.importKey(base64.b64decode(android_info[2]))
 pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)

@@ -5,6 +5,10 @@ from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from bluetooth_rfcomm_server import *
 from SmartphoneProxy import SmartphoneProxy
+from Colors import colors
+from Tkinter import Tk
+from tkFileDialog import askopenfilename
+from shutil import copyfile
 
 
 key_size = 256
@@ -52,10 +56,10 @@ list_files(program_files_dir, files_list)
 
 """============== MAIN LOOP ==============="""
 
-print("Insert Commands, for help insert help:")
-print("Commands:\nlist\nopen\ncreate\ndelete\nexit\nhelp")
+print(colors.GREEN+"Insert Commands, for help insert help:"+colors.RESET)
+print(colors.BLUE+"Commands:\nlist\nopen\ncreate\nimport\ndelete\nexit\nhelp"+colors.RESET)
 while True:
-    command = raw_input(">> ").strip().split()
+    command = raw_input(colors.CURSORFOWARD+">> ").strip().split()
 
     if len(command) == 0:
         continue
@@ -80,13 +84,14 @@ while True:
         if filename in files_list:
             decrypt_file(filename, program_files_dir, proxy)
             timestamp = os.stat(program_files_dir + filename).st_mtime
-            os.system('xterm -e "nano ' + program_files_dir + filename + '"')
+            os.system('xterm  -e "nano ' + program_files_dir + filename + '"')
+            #os.system('xdg-open ' + program_files_dir + filename + ' ;echo 123')
             timestamp2 = os.stat(program_files_dir + filename).st_mtime
             if timestamp2 != timestamp:
                 encrypt_file(key_size, filename, program_files_dir)
             os.system("shred -u " + program_files_dir + filename)
         else:
-            print("The given file does not exist. Please try again.")
+            print(colors.RED+"The given file does not exist. Please try again."+colors.RESET)
 
     elif command[0] == "create":
         if len(command) == 1:
@@ -95,11 +100,28 @@ while True:
             filename = command[1]
 
         if lst_contains(files_list, filename):
-            print("The given file already exists. Please try again.")
+            print(colors.RED+"The given file already exists. Please try again."+colors.RESET)
             continue
 
         newf = open(program_files_dir + filename, "w")
         newf.close()
+        encrypt_file(key_size, filename, program_files_dir)
+        os.system("shred -u " + program_files_dir + filename)
+        files_list.append(filename)
+        print(filename + " was created!")
+
+    elif command[0] == "import":
+        Tk().withdraw()
+        oldfile = askopenfilename()
+
+        filename = os.path.basename(oldfile)
+
+        if lst_contains(files_list, filename):
+            print(colors.RED+"The given file already exists. Please try again or change the name."+colors.RESET)
+            continue
+
+        copyfile(oldfile, program_files_dir + filename)
+
         encrypt_file(key_size, filename, program_files_dir)
         os.system("shred -u " + program_files_dir + filename)
         files_list.append(filename)
@@ -112,7 +134,7 @@ while True:
             filename = command[1]
 
         if not lst_contains(files_list, filename):
-            print("The given file does not exist. Please try again.")
+            print(colors.RED+"The given file does not exist. Please try again."+colors.RESET)
             continue
 
         path = program_files_dir + filename
@@ -126,4 +148,4 @@ while True:
         break
 
     else:
-        print("That command does not exist. To see the commands, enter help.")
+        print(colors.RED+"That command does not exist. To see the commands, enter help."+colors.RESET)

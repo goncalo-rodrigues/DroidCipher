@@ -19,3 +19,23 @@ class colors:
     BRESET = '\x1b[5;39;49m'
 
     BLINK = '\033[4m'
+
+    CURSORFOWARD ='\033[3C'
+
+"""
+import Tkinter
+from Tkinter import Tk
+from tkFileDialog import askopenfilename
+import os
+import subprocess
+
+Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
+old = askopenfilename() # show an "Open" dialog box and return the path to the selected file
+print(old)
+
+filename = os.path.basename(old)
+print(filename)
+p = subprocess.Popen(["xdg-open", old])
+p.wait()
+print ("after startfile")
+"""
