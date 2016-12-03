@@ -56,6 +56,9 @@ def encrypt_file(keySize, filename, path):
         os.system("shred -u " + out_file_name)
     os.rename(out_temporary_name, out_file_name)
 
+    return 1
+
+
 
 def decrypt_file(filename, path, socket):
 
@@ -79,8 +82,8 @@ def decrypt_file(filename, path, socket):
         input_file.close()
         output_file.close()
         metadata_file.close()
-        print(colors.RED + "X----> Some problem in geting the key from android !!!" + colors.RESET)
-        return
+        print(colors.RED + "ERROR: cant get fileKey" + colors.RESET)
+        return None
 
     h = SHA256.new()
     h.update(key)
@@ -90,7 +93,7 @@ def decrypt_file(filename, path, socket):
         output_file.close()
         metadata_file.close()
         print(colors.RED+"X----> the key received is not equal to the one created !!!"+colors.RESET)
-        return
+        return None
 
     decipher = AES.new(key, AES.MODE_CBC, iv)
 
@@ -109,4 +112,6 @@ def decrypt_file(filename, path, socket):
     if os.path.isfile(path + filename):
         os.system("shred -u " + path + filename)
     os.rename(out_temporary_name, path + filename)
+
+    return 1
 

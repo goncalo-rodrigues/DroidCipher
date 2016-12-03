@@ -81,15 +81,19 @@ while True:
             filename = raw_input("Insert the file to open:\n>> ")
         else:
             filename = command[1]
+
         if filename in files_list:
-            decrypt_file(filename, program_files_dir, proxy)
-            timestamp = os.stat(program_files_dir + filename).st_mtime
-            os.system('xterm  -e "nano ' + program_files_dir + filename + '"')
-            #os.system('xdg-open ' + program_files_dir + filename + ' ;echo 123')
-            timestamp2 = os.stat(program_files_dir + filename).st_mtime
-            if timestamp2 != timestamp:
-                encrypt_file(key_size, filename, program_files_dir)
-            os.system("shred -u " + program_files_dir + filename)
+            if(decrypt_file(filename, program_files_dir, proxy) == 1):
+                timestamp = os.stat(program_files_dir + filename).st_mtime
+                os.system('xterm  -e "nano ' + program_files_dir + filename + '"')
+                #os.system('xdg-open ' + program_files_dir + filename + ' ;echo 123')
+                timestamp2 = os.stat(program_files_dir + filename).st_mtime
+                if timestamp2 != timestamp:
+                    encrypt_file(key_size, filename, program_files_dir)
+                os.system("shred -u " + program_files_dir + filename)
+            else:
+                print(colors.RED + "Couldn decrypt the file, try again" + colors.RESET)
+
         else:
             print(colors.RED+"The given file does not exist. Please try again."+colors.RESET)
 

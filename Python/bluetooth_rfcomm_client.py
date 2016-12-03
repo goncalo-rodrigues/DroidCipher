@@ -1,9 +1,16 @@
 import bluetooth
 import base64
+from Colors import colors
 
 
 def connect_to_phone_service(server_address, uuid):
     service = bluetooth.find_service(address=server_address, uuid=uuid)
+    if len(service) == 0:
+        if wantRetryConnecToService() == "yes":
+            return connect_to_phone_service(server_address, uuid)
+        return None
+
+
     service = service[0]
 
     socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -19,13 +26,8 @@ def connect_to_phone_service(server_address, uuid):
 
 def exchange_communication_key(socket, encrypted_iv_communication_key, nonce):
     message = chr(0) + encrypted_iv_communication_key
-    print("message:" + base64.b64encode(message)+ "len(message)" + str(len(message)))
-
-    print("message with communication key send")
     socket.send(message)
-    print("message with communication received by android")
     response = str(socket.recv(1024))
-    print("response received")
     if response == nonce:
         return
 
@@ -37,6 +39,9 @@ def request_file_key(socket, double_encrypted_file_key):
     try_number = 0
 
     message = chr(1) + double_encrypted_file_key
+
+    if socket == None:
+        raise bluetooth.btcommon.BluetoothError
 
     while try_number < NUMBER_OF_TRIES:
         socket.send(message)
@@ -52,3 +57,8 @@ def request_file_key(socket, double_encrypted_file_key):
 
     # The program cannot go on. This error will crash the program.
     non_existing_statement()
+
+def wantRetryConnecToService():
+    print(colors.RED + "ERROR: smartphone service is down, press START on the aplication" + colors.RESET)
+    return raw_input("Want to try again?[yes/no]:\n>> ").lower()
+
