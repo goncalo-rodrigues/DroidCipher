@@ -44,7 +44,6 @@ def create_qrcode(qrcode_content, filename):
     image_file.close()
     return subprocess.Popen(["display", filename])
 
-sys.argv
 program_files_dir = sys.argv[1]
 key_size = int(sys.argv[2])
 #make_first_connection(program_files_dir, key_size)

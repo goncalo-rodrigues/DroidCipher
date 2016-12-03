@@ -9,9 +9,11 @@ from Colors import colors
 from Tkinter import Tk
 from tkFileDialog import askopenfilename
 from shutil import copyfile
+from ConnectionException import ConnectionException
 
 
 key_size = 256
+
 
 def list_files(path, file_list):
     print("Existing Files:")
@@ -48,7 +50,12 @@ metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
 metadata = marshal.load(metadata_file)
 android_mac = metadata[1]
 android_uuid = metadata[0]
-proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
+
+try:
+    proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
+except ConnectionException:
+    print(colors.RED + "ERROR: couldn't connect" + colors.RESET)
+    sys.exit()
 metadata_file.close()
 files_list = []
 list_files(program_files_dir, files_list)

@@ -11,6 +11,7 @@ from bluetooth_rfcomm_client import exchange_communication_key
 from bluetooth_rfcomm_client import request_file_key
 from Crypto.Cipher import AES
 from Colors import colors
+from ConnectionException import ConnectionException
 
 
 class SmartphoneProxy:
@@ -21,8 +22,7 @@ class SmartphoneProxy:
         self.keySize = keySize
         self.socket = connect_to_phone_service(android_mac, android_uuid)
         if self.socket == None:
-            print(colors.RED + "ERROR: couldn't connect" + colors.RESET)
-            return
+            raise ConnectionException("SmartphoneProxy init")
         self.communication_key = Random.new().read(keySize/8)
         self.iv = Random.new().read(AES.block_size)
         self.sendCommunicationKey()
@@ -79,7 +79,17 @@ def decodePKCS7(text):
     pad = ord(text[-1])
     return text[:-pad]
 
-def wantRetry():
-    print(colors.RED + "ERROR: couldn contact smartphone" + colors.RESET)
-    return raw_input("Want to try to reconect to Smartphone?[yes/no]:\n>> ").lower()
 
+def wantRetry():
+    input = ""
+
+    while True:
+        print(colors.RED + "ERROR: could not contact the smartphone" + colors.RESET)
+        input = raw_input("Do you want to try reconnecting to the smartphone? [yes/no]:\n>> ").lower()
+
+        if input == "yes" or input == "no":
+            break
+
+        print("The input was not recognized. Please try again.")
+
+    return input

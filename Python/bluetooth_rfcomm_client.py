@@ -10,7 +10,6 @@ def connect_to_phone_service(server_address, uuid):
             return connect_to_phone_service(server_address, uuid)
         return None
 
-
     service = service[0]
 
     socket = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
@@ -58,7 +57,19 @@ def request_file_key(socket, double_encrypted_file_key):
     # The program cannot go on. This error will crash the program.
     non_existing_statement()
 
+
 def wantRetryConnecToService():
-    print(colors.RED + "ERROR: smartphone service is down, press START on the aplication" + colors.RESET)
-    return raw_input("Want to try again?[yes/no]:\n>> ").lower()
+    input = ""
+
+    while True:
+        print(colors.RED + "ERROR: smartphone's service is down, please press START on the application" + colors.RESET)
+        input = raw_input("Do you want to try again? [yes/no]:\n>> ").lower()
+
+        if input == "yes" or input == "no":
+            break
+
+        print("The input was not recognized. Please try again.")
+
+    return input
+
 
