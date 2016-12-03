@@ -170,14 +170,17 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
         String macAddress = new String(macAddressBytes);
         String pcUUID = new String(pcUUIDBytes);
-        byte[] pubKey;
+        String androidUUID = getString(R.string.androidUUID);
+        String androidMacAddress = android.provider.Settings.Secure.getString(getContentResolver(), "bluetooth_address");
+        String pubKey;
         byte[] hmac;
         SecretKeySpec integrityKey = new SecretKeySpec(integrityKeyBytes, Constants.SYMMETRIC_CIPHER_ALGORITHM);
         PublicKey publicKey = KeyGenHelper.getPublicKey(this);
-        pubKey = KeyGenHelper.printKey(publicKey).getBytes();
-        hmac = CipherHelper.HMac(pubKey, integrityKey);
+        pubKey = KeyGenHelper.printKey(publicKey);
 
-        ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey, hmac);
+        hmac = CipherHelper.HMac((pubKey + androidUUID + androidMacAddress).getBytes() , integrityKey);
+
+        ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey.getBytes(), hmac);
 
         client.start();
 
