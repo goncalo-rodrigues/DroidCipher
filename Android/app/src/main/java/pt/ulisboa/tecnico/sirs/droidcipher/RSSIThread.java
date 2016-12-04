@@ -1,14 +1,9 @@
 package pt.ulisboa.tecnico.sirs.droidcipher;
 
 import android.bluetooth.BluetoothAdapter;
-import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothServerSocket;
 import android.bluetooth.BluetoothSocket;
-import android.content.ComponentName;
 import android.content.Context;
-import android.content.Intent;
-import android.content.ServiceConnection;
-import android.os.IBinder;
 import android.util.Log;
 
 import java.io.IOException;
@@ -19,20 +14,16 @@ import java.util.UUID;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 
-public class ServerThread extends Thread {
-    private final String LOG_TAG = ServerThread.class.getSimpleName();
+public class RSSIThread extends Thread {
+    private final String LOG_TAG = pt.ulisboa.tecnico.sirs.droidcipher.ServerThread.class.getSimpleName();
     private final BluetoothServerSocket mmServerSocket;
     private BluetoothSocket clientSocket = null;
-    private final Context context;
-    private final MainProtocolService providedService;
-
-    // TODO: Change the size, so that it receives all the sent bytes on the first try
+    private final MainProtocolService service;
     private final int BUFFER_SIZE = 1024;
 
-    public ServerThread(MainProtocolService context) {
+    public RSSIThread(MainProtocolService context) {
+        this.service = context;
         BluetoothServerSocket tmp = null;
-        this.context = context;
-        providedService = context;
 
         BluetoothAdapter device = BluetoothAdapter.getDefaultAdapter();
 
@@ -43,7 +34,7 @@ public class ServerThread extends Thread {
         try {
             // MY_UUID is the app's UUID string, also used by the client code
             tmp = device.listenUsingRfcommWithServiceRecord(context.getString(R.string.app_name),
-                    UUID.fromString(context.getString(R.string.androidUUID)));
+                    UUID.fromString(context.getString(R.string.rssiUUID)));
         } catch (IOException e) { }
 
         mmServerSocket = tmp;
@@ -79,18 +70,10 @@ public class ServerThread extends Thread {
                 Log.i(LOG_TAG, "Received message: " + new String(buffer, 0, size));
 
                 byte[] result;
-                byte[] message = Arrays.copyOfRange(buffer, 1, size);
-                if (buffer[0] == 0x0) {
-                    result = providedService.onNewConnection(message, clientSocket.getRemoteDevice());
-                } else {
-                    // Provide the service
-                    result = providedService.onNewMessage(message);
-                }
+                byte[] message = Arrays.copyOfRange(buffer, 0, size);
 
-                if (result == null) {
-                    byte[] error = {0x0};
-                    result = error;
-                }
+                result = service.onRSSI(message);
+
                 out.write(result);
 
             } catch (IOException e) {
@@ -106,5 +89,4 @@ public class ServerThread extends Thread {
         } catch (IOException e) { }
         catch (NullPointerException e) {}
     }
-
 }
