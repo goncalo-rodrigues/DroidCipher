@@ -1,6 +1,8 @@
 import bluetooth
 import os
-import base64
+import time
+import datetime
+import struct
 from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
@@ -9,9 +11,11 @@ from Crypto.Cipher import AES
 from bluetooth_rfcomm_client import connect_to_phone_service
 from bluetooth_rfcomm_client import exchange_communication_key
 from bluetooth_rfcomm_client import request_file_key
+from bluetooth_rfcomm_client import request_rssi
 from Crypto.Cipher import AES
 from Colors import colors
 from ConnectionException import ConnectionException
+from MessageUtilities import data_copy
 
 
 class SmartphoneProxy:
@@ -54,7 +58,6 @@ class SmartphoneProxy:
                 return self.decrypt_key(encrypted_key)
         return output
 
-
     def sendCommunicationKey(self):
         public_key = RSA.importKey(open(os.environ['HOME'] + '/pythoncipher/' + 'cert/public_key.txt').read(), passphrase='password')
         asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo=SHA256)
@@ -62,6 +65,33 @@ class SmartphoneProxy:
         encrypted_message = asymmetric_cipher.encrypt(nonce + self.iv + self.communication_key)
         exchange_communication_key(self.socket, encrypted_message, nonce)
 
+    def measure_rssi(self):
+        TIME_BETWEEN_CHECKS = 5
+
+        # It should run for the entire session
+        while True:
+            time.sleep(TIME_BETWEEN_CHECKS)
+            timestamp = datetime.datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            padded_ts = encodePKCS7(timestamp)
+            e = AES.new(self.communication_key, AES.MODE_CBC, self.iv)
+            encrypted_ts = e.encrypt(padded_ts)
+
+            # Starts the real signal strength check
+            encrypted_rssi = request_rssi(self.socket, encrypted_ts)
+            decrypted = e.decrypt(encrypted_rssi)
+            output = decodePKCS7(decrypted)
+
+            ts_size = len(timestamp)
+            recv_ts = data_copy(output, 0, ts_size)
+
+            """
+            if(recv_ts != timestamp):
+                # TODO: The connection is insecure. Must end the session
+            """
+
+            rssi_value = struct.unpack("i", data_copy(output, ts_size, 4))
+
+            # TODO: Confirm the scale of rssi
 
 
 # ---------------AUX functions-------------

@@ -6,6 +6,7 @@ import bluetooth
 import marshal
 import qrcode
 import subprocess
+import time
 from bluetooth_rfcomm_server import *
 from Crypto.PublicKey import RSA
 from Crypto.Hash import HMAC
@@ -63,26 +64,26 @@ while exchanged == False:
 
     filename = "qrcode"
     p = create_qrcode(qrcode_content, filename)
+
     android_info = create_pc_service(random_uuid)
 
     #h = HMAC.new(integrity_key, android_info[2], SHA512)
     #if android_info[1] == h.digest():
     #    print("android_info[2]")
-     #   integrity_preserved(android_info[0])
-     #   exchanged = True
+    #   integrity_preserved(android_info[0])
+    #   exchanged = True
 
-    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512)
+    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512 )
     if android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest():
         print("android_info[2]+3+4")
         integrity_preserved(android_info[0])
         exchanged = True
     else:
-       integrity_changed(android_info[0])
-       print(colors.RED + "X----> Android public key integrity not ok" + colors.RESET)
+        integrity_changed(android_info[0])
+        print(colors.RED + "X----> Android public key integrity not ok" + colors.RESET)
 
     p.kill()
     os.system("shred -u " + filename)
-
 
 public_key = RSA.importKey(base64.b64decode(android_info[2]))
 pke = public_key.exportKey(format='PEM', passphrase='password', pkcs=1)

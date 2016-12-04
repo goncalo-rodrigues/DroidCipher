@@ -1,18 +1,5 @@
 from bluetooth import *
-
-
-def data_copy(d_from, offset_from, size):
-    d_to = str()
-
-    if len(d_from) < offset_from + size:
-        upper_bound = len(d_from)
-    else:
-        upper_bound = offset_from + size
-
-    for i in range(offset_from, upper_bound):
-        d_to += d_from[i]
-
-    return d_to
+from MessageUtilities import *
 
 
 def create_pc_service(uuid):
@@ -43,7 +30,6 @@ def create_pc_service(uuid):
     stop_advertising(server_sock)
     server_sock.close()
 
-    # TODO: Check the public key's integrity. If there's a problem, it should try again.
     return (client_sock, hash, public_key, android_uuid, android_mac)
 
 

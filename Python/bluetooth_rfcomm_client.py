@@ -1,5 +1,5 @@
 import bluetooth
-import base64
+import signal
 from Colors import colors
 
 
@@ -58,6 +58,31 @@ def request_file_key(socket, double_encrypted_file_key):
     non_existing_statement()
 
 
+def request_rssi(socket, encrypted_timestamp):
+    TIMEOUT_INTERVAL = 5  # This value is in seconds
+    RESPONSE_SIZE = 100
+
+    # This will use a completely different service
+    socket.send(encrypted_timestamp)
+
+    # Sets and starts the timer
+    signal.signal(signal.SIGALRM, response_timeout_handler)
+    signal.alarm(TIMEOUT_INTERVAL)
+
+    response = socket.receive(RESPONSE_SIZE)
+
+    # Disables the alarm
+    signal.alarm(0)
+
+    if len(response) > 0:
+        return response
+
+    return None
+
+
+#################
+# Aux Functions #
+#################
 def wantRetryConnecToService():
     input = ""
 
@@ -73,3 +98,7 @@ def wantRetryConnecToService():
     return input
 
 
+def response_timeout_handler(signum, frame):
+    print("Cannot connection to the smartphone! Timer expired!")
+
+    # TODO: Close the other thread that is showing the UI
