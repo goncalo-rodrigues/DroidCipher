@@ -68,12 +68,11 @@ while exchanged == False:
 
     h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest()
     if android_info[1] == h:
-        print("android_info[2]+3+4")
         integrity_preserved(android_info[0])
         exchanged = True
     else:
         integrity_changed(android_info[0])
-        print(colors.RED + "X----> Android public key integrity not ok" + colors.RESET)
+        print(colors.RED + "X----> Android public key's integrity is not OK" + colors.RESET)
 
     p.kill()
     os.system("shred -u " + filename)

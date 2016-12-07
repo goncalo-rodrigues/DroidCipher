@@ -30,7 +30,7 @@ class SmartphoneProxy:
     def reconect(self):
         self.socket = connect_to_phone_service(self.android_mac, self.android_uuid)
         if self.socket == None:
-            print(colors.RED + "ERROR: couldn't reconnect" + colors.RESET)
+            print(colors.RED + "ERROR: Couldn't reconnect" + colors.RESET)
             return
         self.communication_key = Random.new().read(self.keySize / 8)
         self.iv = Random.new().read(AES.block_size)
@@ -81,7 +81,7 @@ def wantRetry():
     input = ""
 
     while True:
-        print(colors.RED + "ERROR: could not contact the smartphone" + colors.RESET)
+        print(colors.RED + "ERROR: Could not contact the smartphone" + colors.RESET)
         input = raw_input("Do you want to try reconnecting to the smartphone? [yes/no]:\n>> ").lower()
 
         if input == "yes" or input == "no":

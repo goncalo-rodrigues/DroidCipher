@@ -75,7 +75,7 @@ while True:
     command[0] = command[0].lower()
 
     if command[0] == "help":
-        print("Commands:\nlist\nopen\ncreate\nexit\nhelp")
+        print(colors.BLUE + "Commands:\nlist\nopen\ncreate\nimport\ndelete\nexit\nhelp" + colors.RESET)
 
     elif (command[0] == "list") | (command[0] == "ls"):
         if len(files_list) == 0:
@@ -99,7 +99,7 @@ while True:
                     encrypt_file(key_size, filename, program_files_dir)
                 os.system("shred -u " + program_files_dir + filename)
             else:
-                print(colors.RED + "Couldn decrypt the file, try again" + colors.RESET)
+                print(colors.RED + "Couldn't decrypt the file. Please try again." + colors.RESET)
 
         else:
             print(colors.RED+"The given file does not exist. Please try again."+colors.RESET)

@@ -24,9 +24,8 @@ def encrypt_file(keySize, filename, path):
     """saves info to later decipher"""
     file_size = os.path.getsize(path + filename)
     key = Random.new().read(keySize/8)
-    print("created file key:" + base64.b64encode(key))
     public_key = RSA.importKey(open(path +'cert/public_key.txt').read(), passphrase='password')
-    asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo = SHA256)#mudar isto para sha256
+    asymmetric_cipher = PKCS1_OAEP.new(public_key, hashAlgo = SHA256)
     h = SHA256.new()
     h.update(key)
     hashedkey = h.digest()
@@ -82,7 +81,7 @@ def decrypt_file(filename, path, socket):
         input_file.close()
         output_file.close()
         metadata_file.close()
-        print(colors.RED + "ERROR: cant get fileKey" + colors.RESET)
+        print(colors.RED + "ERROR: Cannot get the fileKey!" + colors.RESET)
         return None
 
     h = SHA256.new()
@@ -92,7 +91,7 @@ def decrypt_file(filename, path, socket):
         input_file.close()
         output_file.close()
         metadata_file.close()
-        print(colors.RED+"X----> the key received is not equal to the one created !!!"+colors.RESET)
+        print(colors.RED+"X----> The received key is not equal to the one created!!!"+colors.RESET)
         return None
 
     decipher = AES.new(key, AES.MODE_CBC, iv)
