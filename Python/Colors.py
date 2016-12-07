@@ -18,31 +18,6 @@ class colors:
     RESET   =   '\033[39m'
     BRESET = '\x1b[5;39;49m'
 
-    BLINK = '\033[4m'
+    BLINK = '\033[5m'
 
     CURSORFOWARD ='\033[3C'
-
-"""
-def OpenFIle(path):
-    os.system('xdg-open ' + path)
-
-
-import Tkinter
-from Tkinter import Tk
-from tkFileDialog import askopenfilename
-import os
-import subprocess
-
-Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
-old = askopenfilename() # show an "Open" dialog box and return the path to the selected file
-print(old)
-
-filename = os.path.basename(old)
-print(filename)
-#os.system('gnome-terminal  -e "xdg-open ' + old+ '"')
-subprocess.call(( 'xdg-open '+old))
-#p = subprocess.Popen(['xdg-open',old])
-#os.system('xterm  -e "nano ' + program_files_dir + filename + '"')
-#p.wait()
-print ("after startfile")
-"""
