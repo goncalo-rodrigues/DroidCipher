@@ -14,25 +14,30 @@ import android.util.Log;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 import pt.ulisboa.tecnico.sirs.droidcipher.Services.MainProtocolService;
 
 public class ServerThread extends Thread {
     private final String LOG_TAG = ServerThread.class.getSimpleName();
-    private final BluetoothServerSocket mmServerSocket;
+    private BluetoothServerSocket mmServerSocket;
     private BluetoothSocket clientSocket = null;
     private final Context context;
     private final MainProtocolService providedService;
-
-    private final int BUFFER_SIZE = 1024;
+    private List<ConnectionThread> clientThreads;
 
     public ServerThread(MainProtocolService context) {
-        BluetoothServerSocket tmp = null;
+
         this.context = context;
         providedService = context;
+        clientThreads = new ArrayList<>();
 
+    }
+
+    public void run() {
         BluetoothAdapter device = BluetoothAdapter.getDefaultAdapter();
 
         if (device == null) {
@@ -41,69 +46,55 @@ public class ServerThread extends Thread {
 
         try {
             // MY_UUID is the app's UUID string, also used by the client code
-            tmp = device.listenUsingRfcommWithServiceRecord(context.getString(R.string.app_name),
+            mmServerSocket = device.listenUsingRfcommWithServiceRecord(context.getString(R.string.app_name),
                     UUID.fromString(context.getString(R.string.androidUUID)));
-        } catch (IOException e) { }
-
-        mmServerSocket = tmp;
-
-    }
-
-    public void run() {
-        InputStream in = null;
-        OutputStream out = null;
-        byte[] buffer = new byte[BUFFER_SIZE];
-
+        } catch (IOException e) {
+            Log.e(LOG_TAG, "Unable to start server thread");
+            return;
+        }
 
         Log.d(LOG_TAG, "Listening...");
 
         // Keep listening until connection to specific client occurs
-        while (clientSocket == null) {
+        while (!Thread.currentThread().isInterrupted()) {
             try {
                 clientSocket = mmServerSocket.accept();
             } catch (IOException e) { }
+
+            // create new thread to handle the new client
+            ConnectionThread newThread = new ConnectionThread(clientSocket, providedService);
+            clientThreads.add(newThread);
+            newThread.start();
         }
 
-        // From now on, it will only use the client socket to speak with the PC
-        try {
-            mmServerSocket.close();
-            in = clientSocket.getInputStream();
-            out = clientSocket.getOutputStream();
-        } catch (IOException e) { }
 
-        // It will provide the service until the clientSocket is closed
-        while (true) {
-            try {
-                int size = in.read(buffer);
-                Log.i(LOG_TAG, "Received message: " + new String(buffer, 0, size));
-
-                byte[] result;
-                byte[] message = Arrays.copyOfRange(buffer, 1, size);
-                if (buffer[0] == 0x0) {
-                    result = providedService.onNewConnection(message, clientSocket.getRemoteDevice());
-                } else {
-                    // Provide the service
-                    result = providedService.onNewMessage(message);
-                }
-
-                if (result == null) {
-                    byte[] error = {0x0};
-                    result = error;
-                }
-                out.write(result);
-
-            } catch (IOException e) {
-                break;
-            }
-        }
     }
 
     /** Will cancel the listening socket, and cause the thread to finish */
     public void cancel() {
         try {
-            clientSocket.close();
-        } catch (IOException e) { }
-        catch (NullPointerException e) {}
-    }
+            if (mmServerSocket != null)
+                mmServerSocket.close();
+            for (ConnectionThread ct: clientThreads) {
+                if (!ct.isInterrupted()) {
+                    ct.cancel();
+                    ct.interrupt();
+                }
 
+            }
+        }catch (RuntimeException rte) {
+            Log.e(LOG_TAG, "Error closing: " + rte);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Error closing: " + e);
+        }
+    }
+    @Override
+    public void interrupt() {
+        try {
+            cancel();
+        }
+        finally {
+            super.interrupt();
+        }
+    }
 }
