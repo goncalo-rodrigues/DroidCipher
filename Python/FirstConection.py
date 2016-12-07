@@ -73,25 +73,8 @@ while exchanged == False:
     #   integrity_preserved(android_info[0])
     #   exchanged = True
 
-    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4]+android_info[5], SHA512 )
-
-    print("CALCULATED!!!")
-    print(str(h.digest()))
-    print("OBTAINED!!!")
-    print(android_info[1])
-
-    print("PUBLIC KEY")
-    print(android_info[2] + "|||")
-    print("ORIGINAL UUID")
-    print(android_info[3] + "|||")
-    print("NEW UUID")
-    print(android_info[4] + "|||")
-    print("MAC")
-    print(android_info[5] + "|||")
-
-
-
-    if android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4]+android_info[5], SHA512).digest():
+    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4]+android_info[5], SHA512).digest()
+    if android_info[1] == h:
         print("android_info[2]+3+4+5")
         integrity_preserved(android_info[0])
         exchanged = True

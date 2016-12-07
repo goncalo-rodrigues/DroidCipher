@@ -80,9 +80,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         @Override
         public void onReceive(Context context, Intent intent) {
             String mIntentAction = intent.getAction();
-            if(BluetoothDevice.ACTION_ACL_CONNECTED.equals(mIntentAction)) {
+            if(BluetoothDevice.ACTION_ACL_CONNECTED.equals(mIntentAction))
                 rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
-            }
         }
     };
 
@@ -207,8 +206,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         hmac = CipherHelper.HMac((pubKey + androidUUID + rssiUUID + androidMacAddress).getBytes() , integrityKey);
 
 
-        Log.i("HMAC", new String(hmac));
-
+        Log.i("HMAC", Base64.encodeToString(hmac, Base64.DEFAULT));
+        Log.i("Used in HMAC", new String((pubKey + androidUUID + rssiUUID + androidMacAddress).getBytes()));
 
 
         ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey.getBytes(), hmac);
@@ -340,6 +339,10 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
             Date date = format.parse(dateStr);
             Date now = new Date();
+
+
+            Log.i("Received TS", dateStr);
+
 
             long diff = now.getTime() - date.getTime();
 

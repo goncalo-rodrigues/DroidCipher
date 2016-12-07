@@ -1,7 +1,11 @@
 import bluetooth
-import signal
 from Colors import colors
 from ConnectionException import *
+import threading
+
+
+# To be used in the rssi thread
+result = False
 
 
 def connect_to_phone_service(server_address, uuid):
@@ -60,7 +64,7 @@ def request_file_key(socket, double_encrypted_file_key):
 
 
 def request_rssi(server_address, uuid, encrypted_timestamp):
-    TIMEOUT_INTERVAL = 5  # This value is in seconds
+    TIMEOUT_INTERVAL = 15  # This value is in seconds
     RESPONSE_SIZE = 100
 
     socket = connect_to_phone_service(server_address, uuid)
@@ -72,18 +76,14 @@ def request_rssi(server_address, uuid, encrypted_timestamp):
     socket.send(encrypted_timestamp)
 
     # Sets and starts the timer
-    signal.signal(signal.SIGALRM, response_timeout_handler)
-    signal.alarm(TIMEOUT_INTERVAL)
+    thread = threading.Thread(target=wait_rssi_response, args=(socket, RESPONSE_SIZE))
+    thread.start()
+    thread.join(TIMEOUT_INTERVAL)
 
-    response = socket.receive(RESPONSE_SIZE)
+    if (not result) or len(result) == 1:
+        raise ConnectionException("Request RSSI: Wrong response")
 
-    # Disables the alarm
-    signal.alarm(0)
-
-    if len(response) > 1:
-        return response
-
-    raise ConnectionException("Request RSSI: Wrong response")
+    return result
 
 
 #################
@@ -102,6 +102,12 @@ def wantRetryConnecToService():
         print("The input was not recognized. Please try again.")
 
     return input
+
+
+def wait_rssi_response(socket, response_size):
+    global result
+    result = False
+    result = socket.recv(response_size)
 
 
 def response_timeout_handler(signum, frame):

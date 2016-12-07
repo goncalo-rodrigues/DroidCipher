@@ -55,7 +55,7 @@ android_uuid_rssi = metadata[1]
 
 try:
     proxy = SmartphoneProxy(android_mac, android_uuid_files, android_uuid_rssi, key_size)
-    thread.start_new_thread(proxy.measure_rssi)
+    thread.start_new_thread(proxy.measure_rssi, ())
 except ConnectionException:
     print(colors.RED + "ERROR: couldn't connect" + colors.RESET)
     sys.exit()

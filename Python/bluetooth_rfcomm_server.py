@@ -20,7 +20,7 @@ def create_pc_service(uuid):
     client_sock, client_info = server_sock.accept()
     print("Accepted connection from " + str(client_info))
 
-    full_message = client_sock.recv(550)
+    full_message = client_sock.recv(600)
 
     hash = data_copy(full_message, 0, 64)
     android_uuid_files = data_copy(full_message, 64, 36)

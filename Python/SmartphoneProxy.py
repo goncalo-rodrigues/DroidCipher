@@ -87,6 +87,13 @@ class SmartphoneProxy:
             recv_ts = data_copy(output, 0, ts_size)
             rssi_value = str(data_copy(output, ts_size, 10))
 
+            # TODO: Debugging
+            print(output)
+            print("ORIGINAL TIMESTAMP")
+            print(timestamp)
+            print("RECEIVED TIMESTAMP")
+            print(recv_ts)
+
             if(recv_ts != timestamp):
                 raise ConnectionException("Measure RSSI: The received timestamp was wrong")
 

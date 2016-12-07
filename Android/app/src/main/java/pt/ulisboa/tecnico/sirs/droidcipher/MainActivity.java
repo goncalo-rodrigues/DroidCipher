@@ -116,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        int permissionCheck = ContextCompat.checkSelfPermission(this,
+                Manifest.permission.ACCESS_COARSE_LOCATION);
+
         logList = (ListView) findViewById(R.id.main_log_lv);
         logList.setDivider(null);
         statusTv = (TextView) findViewById(R.id.main_service_status);
