@@ -298,7 +298,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         onStopCurrentConnection();
         if (serverThread != null) {
             serverThread.cancel();
-            serverThread.interrupt();
+            //serverThread.interrupt();
         }
 
         serverThread = null;

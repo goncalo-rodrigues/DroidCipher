@@ -59,7 +59,9 @@ public class ServerThread extends Thread {
         while (!Thread.currentThread().isInterrupted()) {
             try {
                 clientSocket = mmServerSocket.accept();
-            } catch (IOException e) { }
+            } catch (IOException e) {
+                break;
+            }
 
             // create new thread to handle the new client
             ConnectionThread newThread = new ConnectionThread(clientSocket, providedService);
