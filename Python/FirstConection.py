@@ -46,7 +46,6 @@ def create_qrcode(qrcode_content, filename):
 
 program_files_dir = sys.argv[1]
 key_size = int(sys.argv[2])
-#make_first_connection(program_files_dir, key_size)
 
 if os.path.exists(program_files_dir + 'cert') == False:
     os.mkdir(program_files_dir + 'cert')#,745)
