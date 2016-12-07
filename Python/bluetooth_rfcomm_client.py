@@ -1,4 +1,5 @@
 import bluetooth
+import base64
 from Colors import colors
 from ConnectionException import ConnectionException
 
@@ -25,6 +26,7 @@ def connect_to_phone_service(server_address, uuid):
 
 def exchange_communication_key(socket, encrypted_iv_communication_key, nonce):
     message = chr(0) + encrypted_iv_communication_key
+    print("Communication ID: " + base64.b64encode(nonce))
     socket.send(message)
     response = str(socket.recv(1024))
     if response == nonce:
