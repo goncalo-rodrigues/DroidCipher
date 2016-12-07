@@ -125,18 +125,19 @@ while True:
         Tk().withdraw()
         oldfile = askopenfilename()
 
-        filename = os.path.basename(oldfile)
+        if oldfile != ():
+            filename = os.path.basename(oldfile)
 
-        if lst_contains(files_list, filename):
-            print(colors.RED+"The given file already exists. Please try again or change the name."+colors.RESET)
-            continue
+            if lst_contains(files_list, filename):
+                print(colors.RED+"The given file already exists. Please try again or change the name."+colors.RESET)
+                continue
 
-        copyfile(oldfile, program_files_dir + filename)
+            copyfile(oldfile, program_files_dir + filename)
 
-        encrypt_file(key_size, filename, program_files_dir)
-        os.system("shred -u " + program_files_dir + filename)
-        files_list.append(filename)
-        print(filename + " was created!")
+            encrypt_file(key_size, filename, program_files_dir)
+            os.system("shred -u " + program_files_dir + filename)
+            files_list.append(filename)
+            print(filename + " was created!")
 
     elif command[0] == "delete":
         if len(command) == 1:
