@@ -26,7 +26,6 @@ public class ServerThread extends Thread {
     private final Context context;
     private final MainProtocolService providedService;
 
-    // TODO: Change the size, so that it receives all the sent bytes on the first try
     private final int BUFFER_SIZE = 1024;
 
     public ServerThread(MainProtocolService context) {

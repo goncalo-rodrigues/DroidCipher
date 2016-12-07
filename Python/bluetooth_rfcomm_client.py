@@ -1,6 +1,7 @@
 import bluetooth
 import signal
 from Colors import colors
+from ConnectionException import *
 
 
 def connect_to_phone_service(server_address, uuid):
@@ -58,9 +59,14 @@ def request_file_key(socket, double_encrypted_file_key):
     non_existing_statement()
 
 
-def request_rssi(socket, encrypted_timestamp):
+def request_rssi(server_address, uuid, encrypted_timestamp):
     TIMEOUT_INTERVAL = 5  # This value is in seconds
     RESPONSE_SIZE = 100
+
+    socket = connect_to_phone_service(server_address, uuid)
+
+    if not socket:
+        raise ConnectionException("Request RSSI: The returned socket was None")
 
     # This will use a completely different service
     socket.send(encrypted_timestamp)
@@ -74,10 +80,10 @@ def request_rssi(socket, encrypted_timestamp):
     # Disables the alarm
     signal.alarm(0)
 
-    if len(response) > 0:
+    if len(response) > 1:
         return response
 
-    return None
+    raise ConnectionException("Request RSSI: Wrong response")
 
 
 #################

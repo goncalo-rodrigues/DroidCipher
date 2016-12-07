@@ -23,14 +23,15 @@ def create_pc_service(uuid):
     full_message = client_sock.recv(550)
 
     hash = data_copy(full_message, 0, 64)
-    android_uuid = data_copy(full_message, 64, 36)
-    android_mac = data_copy(full_message, 100, 17)
-    public_key = data_copy(full_message, 117, 400)
+    android_uuid_files = data_copy(full_message, 64, 36)
+    android_uuid_rssi = data_copy(full_message, 100, 36)
+    android_mac = data_copy(full_message, 136, 17)
+    public_key = data_copy(full_message, 153, 400)
 
     stop_advertising(server_sock)
     server_sock.close()
 
-    return (client_sock, hash, public_key, android_uuid, android_mac)
+    return (client_sock, hash, public_key, android_uuid_files, android_uuid_rssi, android_mac)
 
 
 def integrity_preserved(client_sock):

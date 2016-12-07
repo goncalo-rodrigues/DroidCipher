@@ -1,6 +1,7 @@
 import os.path
 import re
 import marshal
+import thread
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from bluetooth_rfcomm_server import *
@@ -43,16 +44,18 @@ if not os.path.exists(program_files_dir):
 print('Using ' + program_files_dir + ' as program file')
 
 if os.path.isfile(program_files_dir + 'cert/public_key.txt') == False:
-    os.system('xterm -e "sudo python FirstConection.py ' + program_files_dir +' '+ str(key_size) + '"')
+    os.system('xterm -e "sudo python FirstConection.py ' + program_files_dir + ' ' + str(key_size) + '"')
 
 
 metadata_file = open(program_files_dir + 'cert/androidMetadata.txt', 'r')
 metadata = marshal.load(metadata_file)
-android_mac = metadata[1]
-android_uuid = metadata[0]
+android_mac = metadata[2]
+android_uuid_files = metadata[0]
+android_uuid_rssi = metadata[1]
 
 try:
-    proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
+    proxy = SmartphoneProxy(android_mac, android_uuid_files, android_uuid_rssi, key_size)
+    thread.start_new_thread(proxy.measure_rssi)
 except ConnectionException:
     print(colors.RED + "ERROR: couldn't connect" + colors.RESET)
     sys.exit()

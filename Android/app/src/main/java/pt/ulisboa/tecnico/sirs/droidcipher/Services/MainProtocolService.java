@@ -7,7 +7,11 @@ import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothClass;
 import android.bluetooth.BluetoothDevice;
 import android.content.Intent;
+import android.content.BroadcastReceiver;
+import android.content.Context;
+import android.content.IntentFilter;
 import android.os.Binder;
+import android.os.Debug;
 import android.os.IBinder;
 import android.support.annotation.Nullable;
 import android.support.v4.app.NotificationCompat;
@@ -34,6 +38,7 @@ import pt.ulisboa.tecnico.sirs.droidcipher.Helpers.NotificationsHelper;
 import pt.ulisboa.tecnico.sirs.droidcipher.Interfaces.IAcceptConnectionCallback;
 import pt.ulisboa.tecnico.sirs.droidcipher.MainActivity;
 import pt.ulisboa.tecnico.sirs.droidcipher.R;
+import pt.ulisboa.tecnico.sirs.droidcipher.RSSIThread;
 import pt.ulisboa.tecnico.sirs.droidcipher.ServerThread;
 import pt.ulisboa.tecnico.sirs.droidcipher.data.Event;
 
@@ -51,8 +56,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public static final String EXTRA_CONNECTION = "extra:current_connection";
     public static final String EXTRA_DEVICE = "extra:current_device";
 
-    private static final int TIME_DRIFT = 2000;
-
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
     private byte[] commIV = null;
@@ -62,12 +65,26 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
 
     private PrivateKey privateKey = null;
     private ServerThread serverThread;
+    private RSSIThread rssiThread;
     private boolean accepted = false;
 
     public ServiceState state;
     public MainProtocolService() {
         super();
     }
+
+    private int rssi;
+    private static final int TIME_DRIFT = 2000; // It is measured in milliseconds
+
+    private final android.content.BroadcastReceiver BroadcastReceiver = new BroadcastReceiver(){
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            String mIntentAction = intent.getAction();
+            if(BluetoothDevice.ACTION_ACL_CONNECTED.equals(mIntentAction)) {
+                rssi = intent.getShortExtra(BluetoothDevice.EXTRA_RSSI,Short.MIN_VALUE);
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -82,6 +99,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         state.setOn(false);
         state.setConnected(false);
         state.setWaitingUser(false);
+        registerReceiver(BroadcastReceiver, new IntentFilter(BluetoothDevice.ACTION_ACL_CONNECTED));
         super.onCreate();
     }
 
@@ -124,6 +142,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         if (mBluetoothAdapter != null && mBluetoothAdapter.isEnabled()) {
             Log.d(LOG_TAG, "Started");
             if (serverThread == null) {
+                rssiThread = new RSSIThread(this);
+                rssiThread.start();
                 serverThread = new ServerThread(this);
                 serverThread.start();
                 logEvent(Events.SERVICE_STARTED, null);
@@ -176,6 +196,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         String macAddress = new String(macAddressBytes);
         String pcUUID = new String(pcUUIDBytes);
         String androidUUID = getString(R.string.androidUUID);
+        String rssiUUID = getString(R.string.rssiUUID);
         String androidMacAddress = android.provider.Settings.Secure.getString(getContentResolver(), "bluetooth_address");
         String pubKey;
         byte[] hmac;
@@ -183,7 +204,12 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         PublicKey publicKey = KeyGenHelper.getPublicKey(this);
         pubKey = KeyGenHelper.printKey(publicKey);
 
-        hmac = CipherHelper.HMac((pubKey + androidUUID + androidMacAddress).getBytes() , integrityKey);
+        hmac = CipherHelper.HMac((pubKey + androidUUID + rssiUUID + androidMacAddress).getBytes() , integrityKey);
+
+
+        Log.i("HMAC", new String(hmac));
+
+
 
         ClientThread client = new ClientThread(this, macAddress, pcUUID, pubKey.getBytes(), hmac);
 
@@ -320,8 +346,7 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             if (diff > TIME_DRIFT || diff < 0)
                 return null;
 
-            // TODO: Fill with the response
-            byte[] response = new byte[5];
+            byte[] response = new String(dateStr + rssi).getBytes("UTF-8");
 
             byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, response);
             logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
@@ -348,6 +373,8 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
         if (serverThread != null) {
             serverThread.cancel();
             serverThread.interrupt();
+            rssiThread.cancel();
+            rssiThread.interrupt();
         }
 
         serverThread = null;

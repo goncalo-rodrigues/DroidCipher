@@ -2,7 +2,6 @@ import bluetooth
 import os
 import time
 import datetime
-import struct
 from Crypto import Random
 from Crypto.Cipher import PKCS1_OAEP
 from Crypto.PublicKey import RSA
@@ -20,11 +19,12 @@ from MessageUtilities import data_copy
 
 class SmartphoneProxy:
 
-    def __init__(self, android_mac, android_uuid, keySize):
+    def __init__(self, android_mac, android_uuid_files, android_uuid_rssi, keySize):
         self.android_mac = android_mac
-        self.android_uuid = android_uuid
+        self.android_uuid_files = android_uuid_files
+        self.android_uuid_rssi = android_uuid_rssi
         self.keySize = keySize
-        self.socket = connect_to_phone_service(android_mac, android_uuid)
+        self.socket = connect_to_phone_service(android_mac, android_uuid_files)
         if self.socket == None:
             raise ConnectionException("SmartphoneProxy init")
         self.communication_key = Random.new().read(keySize/8)
@@ -32,7 +32,7 @@ class SmartphoneProxy:
         self.sendCommunicationKey()
 
     def reconect(self):
-        self.socket = connect_to_phone_service(self.android_mac, self.android_uuid)
+        self.socket = connect_to_phone_service(self.android_mac, self.android_uuid_files)
         if self.socket == None:
             print(colors.RED + "ERROR: couldn't reconnect" + colors.RESET)
             return
@@ -66,7 +66,8 @@ class SmartphoneProxy:
         exchange_communication_key(self.socket, encrypted_message, nonce)
 
     def measure_rssi(self):
-        TIME_BETWEEN_CHECKS = 5
+        TIME_BETWEEN_CHECKS = 5  # It is measured in seconds
+        #MAX_DISTANCE = TODO
 
         # It should run for the entire session
         while True:
@@ -77,19 +78,21 @@ class SmartphoneProxy:
             encrypted_ts = e.encrypt(padded_ts)
 
             # Starts the real signal strength check
-            encrypted_rssi = request_rssi(self.socket, encrypted_ts)
+            encrypted_rssi = request_rssi(self.android_mac, self.android_uuid_rssi, encrypted_ts)
+
             decrypted = e.decrypt(encrypted_rssi)
             output = decodePKCS7(decrypted)
 
             ts_size = len(timestamp)
             recv_ts = data_copy(output, 0, ts_size)
+            rssi_value = str(data_copy(output, ts_size, 10))
 
-            """
             if(recv_ts != timestamp):
-                # TODO: The connection is insecure. Must end the session
-            """
+                raise ConnectionException("Measure RSSI: The received timestamp was wrong")
 
-            rssi_value = struct.unpack("i", data_copy(output, ts_size, 4))
+            rssi_value = int(rssi_value)
+
+            print("\t\t\t\t\t\tRSSI VALUE: " + str(rssi_value))
 
             # TODO: Confirm the scale of rssi
 
