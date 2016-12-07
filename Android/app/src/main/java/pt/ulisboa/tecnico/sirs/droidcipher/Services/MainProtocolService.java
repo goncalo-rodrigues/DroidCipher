@@ -17,10 +17,7 @@ import android.util.Log;
 import java.security.InvalidKeyException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.text.ParseException;
 import java.util.Arrays;
-import java.util.Date;
-import java.text.SimpleDateFormat;
 
 import javax.crypto.spec.SecretKeySpec;
 
@@ -50,8 +47,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
     public static final String EXTRA_EVENT = "extra:event";
     public static final String EXTRA_CONNECTION = "extra:current_connection";
     public static final String EXTRA_DEVICE = "extra:current_device";
-
-    private static final int TIME_DRIFT = 2000;
 
     private final IBinder mBinder = new LocalBinder();
     private SecretKeySpec commKey = null;
@@ -287,50 +282,6 @@ public class MainProtocolService extends Service implements IAcceptConnectionCal
             return encryptedFileKey;
         } catch (Exception e) {
             logEvent(Events.FAILED_FILE_DECRYPT_REQUEST, state.getCurrentConnection());
-            e.printStackTrace();
-            Log.e(LOG_TAG, "Invalid key!");
-        }
-        return null;
-    }
-
-    public byte[] onRSSI(byte[] message) {
-        if (commKey == null) {
-            commKey = KeyGenHelper.getLastCommunicationKey(this);
-        }
-        if (commIV == null) {
-            commIV = KeyGenHelper.getLastCommunicationIV(this);
-        }
-
-        boolean accepted = commKey != null && commIV != null && privateKey != null;
-        if (!accepted) {
-            Log.e(LOG_TAG, "Trying to communicate with a rejected session. Ignoring.");
-            return null;
-        }
-
-        try {
-            byte[] decryptedMessage = CipherHelper.AESDecrypt(commKey, commIV, message);
-            String dateStr = new String(decryptedMessage, "UTF-8");
-
-            SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-            Date date = format.parse(dateStr);
-            Date now = new Date();
-
-            long diff = now.getTime() - date.getTime();
-
-            if (diff > TIME_DRIFT || diff < 0)
-                return null;
-
-            // TODO: Fill with the response
-            byte[] response = new byte[5];
-
-            byte[] encryptedFileKey = CipherHelper.AESEncrypt(commKey, commIV, response);
-            logEvent(Events.FILE_DECRYPT_REQUEST, state.getCurrentConnection());
-            return encryptedFileKey;
-
-        } catch(ParseException e) {
-            e.printStackTrace();
-            Log.e(LOG_TAG, "Invalid date parsing!");
-        } catch (Exception e) {
             e.printStackTrace();
             Log.e(LOG_TAG, "Invalid key!");
         }

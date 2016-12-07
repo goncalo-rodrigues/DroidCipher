@@ -6,7 +6,6 @@ import bluetooth
 import marshal
 import qrcode
 import subprocess
-import time
 from bluetooth_rfcomm_server import *
 from Crypto.PublicKey import RSA
 from Crypto.Hash import HMAC
@@ -67,14 +66,8 @@ while exchanged == False:
 
     android_info = create_pc_service(random_uuid)
 
-    #h = HMAC.new(integrity_key, android_info[2], SHA512)
-    #if android_info[1] == h.digest():
-    #    print("android_info[2]")
-    #   integrity_preserved(android_info[0])
-    #   exchanged = True
-
-    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512 )
-    if android_info[1] == HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest():
+    h = HMAC.new(integrity_key, android_info[2]+android_info[3]+android_info[4], SHA512).digest()
+    if android_info[1] == h:
         print("android_info[2]+3+4")
         integrity_preserved(android_info[0])
         exchanged = True

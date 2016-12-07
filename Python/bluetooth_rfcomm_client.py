@@ -1,5 +1,4 @@
 import bluetooth
-import signal
 from Colors import colors
 
 
@@ -40,45 +39,16 @@ def request_file_key(socket, double_encrypted_file_key):
     message = chr(1) + double_encrypted_file_key
 
     if socket == None:
-        raise bluetooth.btcommon.BluetoothError
+        raise bluetooth.BluetoothError
 
-    while try_number < NUMBER_OF_TRIES:
-        socket.send(message)
+    socket.send(message)
 
-        response = socket.recv(1024)
+    response = socket.recv(1024)
 
-        if len(response) > 1:
-            return response
-
-        try_number += 1
-
-    print("ERROR: Could not receive file key!!!")
-
-    # The program cannot go on. This error will crash the program.
-    non_existing_statement()
-
-
-def request_rssi(socket, encrypted_timestamp):
-    TIMEOUT_INTERVAL = 5  # This value is in seconds
-    RESPONSE_SIZE = 100
-
-    # This will use a completely different service
-    socket.send(encrypted_timestamp)
-
-    # Sets and starts the timer
-    signal.signal(signal.SIGALRM, response_timeout_handler)
-    signal.alarm(TIMEOUT_INTERVAL)
-
-    response = socket.receive(RESPONSE_SIZE)
-
-    # Disables the alarm
-    signal.alarm(0)
-
-    if len(response) > 0:
+    if len(response) > 1:
         return response
 
-    return None
-
+    raise bluetooth.BluetoothError
 
 #################
 # Aux Functions #
@@ -96,9 +66,3 @@ def wantRetryConnecToService():
         print("The input was not recognized. Please try again.")
 
     return input
-
-
-def response_timeout_handler(signum, frame):
-    print("Cannot connection to the smartphone! Timer expired!")
-
-    # TODO: Close the other thread that is showing the UI
