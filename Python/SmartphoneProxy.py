@@ -36,7 +36,6 @@ class SmartphoneProxy:
         self.iv = Random.new().read(AES.block_size)
         self.sendCommunicationKey()
 
-    # mock that should be replaced
     def decrypt_key(self, encrypted_key):
         output = None
         padded_text = encodePKCS7(encrypted_key)

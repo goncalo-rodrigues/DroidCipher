@@ -33,9 +33,6 @@ def exchange_communication_key(socket, encrypted_iv_communication_key, nonce):
 
 
 def request_file_key(socket, double_encrypted_file_key):
-    NUMBER_OF_TRIES = 5
-    try_number = 0
-
     message = chr(1) + double_encrypted_file_key
 
     if socket == None:
