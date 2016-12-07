@@ -1,6 +1,7 @@
 import os.path
 import re
 import marshal
+import bluetooth
 from FileOperations import decrypt_file
 from FileOperations import encrypt_file
 from bluetooth_rfcomm_server import *
@@ -53,9 +54,10 @@ android_uuid = metadata[0]
 
 try:
     proxy = SmartphoneProxy(android_mac, android_uuid, key_size)
-except ConnectionException:
+except (ConnectionException, bluetooth.BluetoothError):
     print(colors.RED + "ERROR: couldn't connect" + colors.RESET)
     sys.exit()
+
 metadata_file.close()
 files_list = []
 list_files(program_files_dir, files_list)

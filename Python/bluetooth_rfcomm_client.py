@@ -1,5 +1,6 @@
 import bluetooth
 from Colors import colors
+from ConnectionException import ConnectionException
 
 
 def connect_to_phone_service(server_address, uuid):
@@ -29,7 +30,7 @@ def exchange_communication_key(socket, encrypted_iv_communication_key, nonce):
     if response == nonce:
         return
 
-    print("ERROR: Could not send the communication key!!!")
+    raise ConnectionException(colors.RED + "Could not send the communicationKey!!!" + colors.RESET)
 
 
 def request_file_key(socket, double_encrypted_file_key):
