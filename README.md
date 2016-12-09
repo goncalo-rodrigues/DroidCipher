@@ -28,7 +28,7 @@ Group 4
 
     * Restart the computer
 
-  * Turn on bluetooth and make and make it visible
+  * Turn on bluetooth and make it visible
 
   * Run the command: python DroidCipher.py. The terminal location should be: Proj-SIRS16-17-G4/Python.
 
@@ -36,3 +36,10 @@ Group 4
   * Install DroidCipher_Android_App.apk
 
   * Open the application
+
+################################
+# RESTART THE COMPUTER'S STATE #
+################################
+* Run the command: sudo chattr -i /home/<logged user's username>/pythoncipher/cert/
+* Run the command: sudo rm -r /home/<logged user's username>/pythoncipher/
+* Now start the application as usual: python DroidCipher.py
